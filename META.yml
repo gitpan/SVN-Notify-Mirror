@@ -1,11 +1,11 @@
---- #YAML:1.0
+---
 name: SVN-Notify-Mirror
-version: 0.01
+version: 0.01_03
 author: ~
 abstract: Keep a mirrored working copy of a repository path
 license: perl
 provides:
   SVN::Notify::Mirror:
     file: lib/SVN/Notify/Mirror.pm
-    version: 0.01
-generated_by: Module::Build version 0.2607
+    version: 0.01_03
+generated_by: Module::Build version 0.2701
