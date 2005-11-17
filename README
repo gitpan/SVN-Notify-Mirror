@@ -6,36 +6,40 @@ SYNOPSIS
 
       svnnotify --repos-path "$1" --revision "$2" \
         --to "/path/to/www/htdocs" --handler Mirror \
-            [--svn-binary /full/path/to/svn]
+       [--svn-binary /full/path/to/svn]
+
+    or better yet, use SVN::Notify::Config for a more sophisticated setup:
+
+      #!/usr/bin/perl -MSVN::Notify::Config=$0
+      --- #YAML:1.0
+      '':
+        PATH: "/usr/bin:/usr/local/bin"
+      'path/in/repository':
+        handler: Mirror
+        to: "/path/to/www/htdocs"
+      'some/other/path/in/repository':
+        handler: Mirror
+        to: "/path/to/remote/www/htdocs"
+        ssh_host: "remote_host"
+        ssh_user: "remote_user"
+        ssh_tunnel: "10.0.0.2"
+        ssh_identity: "/home/user/.ssh/id_rsa"
 
 DESCRIPTION
-    Keep a local directory in sync with a portion of a Subversion
-    repository. Typically used to keep a development web server in sync with
-    the changes made to the repository.
+    Keep a directory in sync with a portion of a Subversion repository.
+    Typically used to keep a development web server in sync with the changes
+    made to the repository. This directory can either be on the same box as
+    the repository itself, or it can be remote (via SSH connection).
 
-    NOTE: because 'svn export' is not able to be consistently updated, the
-    sync'd directory must be a full working copy, and if you are running
-    Apache, you should add lines like the following to your Apache
-    configuration file:
+INSTALLATION
+    Install Module::Build and then run:
 
-      # Disallow browsing of Subversion working copy
-      # administrative directories.
-      <DirectoryMatch "^/.*/\.svn/">
-       Order deny,allow
-       Deny from all
-      </DirectoryMatch>
+    $ perl Build.PL
+    $ ./Build
+    $ su
+    # ./Build install
 
 AUTHOR
-            John Peacock
-            jpeacock@cpan.org
-
-COPYRIGHT
-    This program is free software; you can redistribute it and/or modify it
-    under the same terms as Perl itself.
-
-    The full text of the license can be found in the LICENSE file included
-    with this module.
-
-SEE ALSO
-    SVN::Notify, SVN::Notify::Config
+    John Peacock
+    jpeacock@cpan.org
 

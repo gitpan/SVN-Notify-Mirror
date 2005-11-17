@@ -5,10 +5,18 @@ use strict;
 
 BEGIN {
     use vars qw ($VERSION @ISA $SVN_BINARY);
-    $VERSION     = "0.01_03";
+    $VERSION     = "0.01_05";
     $VERSION     = eval $VERSION;
     @ISA         = qw (SVN::Notify);
 }
+
+__PACKAGE__->register_attributes(
+    ssh_host     => 'ssh_host=s',
+    ssh_user     => 'ssh_user:s',
+    ssh_tunnel   => 'ssh_tunnel:s',
+    ssh_identity => 'ssh_identity:s',
+);
+
 
 sub prepare {
     my $self = shift;
@@ -20,17 +28,19 @@ sub execute {
     my $to = $self->{to} or return;
     my $repos = $self->{repos_path} or return;
     my $svn_binary = $self->{svn_binary} || '/usr/local/bin/svn';
-    if ( exists $self->{ssh_host} ) {
+    my $command = 'update';
+
+    if ( defined $self->{ssh_host} ) {
 	$self->_ssh_run(
 	    $to,
-	    $svn_binary, 'update',
+	    $svn_binary, $command,
 	    -r => $self->{revision},
 	);
     }
     else {
 	$self->_cd_run(
 	    $to,
-	    $svn_binary, 'update',
+	    $svn_binary, $command,
 	    -r => $self->{revision},
 	);
     }
@@ -46,19 +56,23 @@ sub _ssh_run {
     my ($self, $path) = (shift, shift);
     eval "use Net::SSH qw(sshopen2)";
     die "Failed to load Net::SSH: $@" if $@;
-    my $user = $self->{ssh_user} || "";
     my $host = $self->{ssh_host};
+    my $user = 
+    	defined $self->{ssh_user} 
+    	? $self->{ssh_user}.'@'.$host
+	: $host;
+
     my $cmd  = "cd $path && " . join(" ",@_);
-    if ( exists $self->{ssh_tunnel} ) {
+    if ( defined $self->{ssh_tunnel} ) {
 	push @Net::SSH::ssh_options, 
 		"-R3690:".$self->{ssh_tunnel}.":3690";
     }
-    if ( exists $self->{ssh_identity} ) {
+    if ( defined $self->{ssh_identity} ) {
 	push @Net::SSH::ssh_options,
 		"-i".$self->{ssh_identity};
     }
 
-    sshopen2("$user\@$host", *READER, *WRITER, "$cmd") || die "ssh: $!";
+    sshopen2($user, *READER, *WRITER, $cmd) || die "ssh: $!";
 
     while (<READER>) {
 	chomp();
