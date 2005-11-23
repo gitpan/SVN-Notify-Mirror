@@ -1,0 +1,179 @@
+SVN-fs-dump-format-version: 2
+
+UUID: 5b46e8b5-0206-0410-bf4b-9ad64f0c2ad1
+
+Revision-number: 0
+Prop-content-length: 56
+Content-length: 56
+
+K 8
+svn:date
+V 27
+2005-11-20T17:43:38.443221Z
+PROPS-END
+
+Revision-number: 1
+Prop-content-length: 108
+Content-length: 108
+
+K 7
+svn:log
+V 6
+stage1
+K 10
+svn:author
+V 8
+jpeacock
+K 8
+svn:date
+V 27
+2005-11-20T17:47:27.350490Z
+PROPS-END
+
+Node-path: branches
+Node-kind: dir
+Node-action: add
+Prop-content-length: 10
+Content-length: 10
+
+PROPS-END
+
+
+Node-path: tags
+Node-kind: dir
+Node-action: add
+Prop-content-length: 10
+Content-length: 10
+
+PROPS-END
+
+
+Node-path: trunk
+Node-kind: dir
+Node-action: add
+Prop-content-length: 10
+Content-length: 10
+
+PROPS-END
+
+
+Node-path: trunk/dir1
+Node-kind: dir
+Node-action: add
+Prop-content-length: 10
+Content-length: 10
+
+PROPS-END
+
+
+Node-path: trunk/file1
+Node-kind: file
+Node-action: add
+Prop-content-length: 10
+Text-content-length: 6
+Text-content-md5: 5149d403009a139c7e085405ef762e1a
+Content-length: 16
+
+PROPS-END
+file1
+
+
+Revision-number: 2
+Prop-content-length: 108
+Content-length: 108
+
+K 7
+svn:log
+V 6
+stage2
+K 10
+svn:author
+V 8
+jpeacock
+K 8
+svn:date
+V 27
+2005-11-20T17:48:32.374241Z
+PROPS-END
+
+Node-path: branches/branch1
+Node-kind: dir
+Node-action: add
+Node-copyfrom-rev: 1
+Node-copyfrom-path: trunk
+
+
+Revision-number: 3
+Prop-content-length: 108
+Content-length: 108
+
+K 7
+svn:log
+V 6
+stage3
+K 10
+svn:author
+V 8
+jpeacock
+K 8
+svn:date
+V 27
+2005-11-20T17:49:46.064352Z
+PROPS-END
+
+Node-path: branches/branch1/dir1/file3
+Node-kind: file
+Node-action: add
+Prop-content-length: 10
+Text-content-length: 6
+Text-content-md5: 60b91f1875424d3b4322b0fdd0529d5d
+Content-length: 16
+
+PROPS-END
+file3
+
+
+Node-path: branches/branch1/file2
+Node-kind: file
+Node-action: add
+Prop-content-length: 10
+Text-content-length: 6
+Text-content-md5: 3d709e89c8ce201e3c928eb917989aef
+Content-length: 16
+
+PROPS-END
+file2
+
+
+Revision-number: 4
+Prop-content-length: 108
+Content-length: 108
+
+K 7
+svn:log
+V 6
+stage4
+K 10
+svn:author
+V 8
+jpeacock
+K 8
+svn:date
+V 27
+2005-11-20T17:52:35.264301Z
+PROPS-END
+
+Node-path: trunk/dir1/file3
+Node-kind: file
+Node-action: add
+Node-copyfrom-rev: 3
+Node-copyfrom-path: branches/branch1/dir1/file3
+
+
+Node-path: trunk/file2
+Node-kind: file
+Node-action: add
+Node-copyfrom-rev: 3
+Node-copyfrom-path: branches/branch1/file2
+
+

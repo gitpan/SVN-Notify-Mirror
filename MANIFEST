@@ -6,3 +6,8 @@ Changes
 lib/SVN/Notify/Mirror.pm
 Build.PL
 META.yml
+t/001_basic.t
+t/002_config.t.PL
+t/003_sshtest.t.PL
+t/coretests.pm
+t/test-repos.dump

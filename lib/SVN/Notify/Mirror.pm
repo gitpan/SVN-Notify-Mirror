@@ -4,17 +4,18 @@ package SVN::Notify::Mirror;
 use strict;
 
 BEGIN {
-    use vars qw ($VERSION @ISA $SVN_BINARY);
-    $VERSION     = "0.01_05";
+    use vars qw ($VERSION @ISA);
+    $VERSION     = "0.01_09";
     $VERSION     = eval $VERSION;
     @ISA         = qw (SVN::Notify);
 }
 
 __PACKAGE__->register_attributes(
-    ssh_host     => 'ssh_host=s',
-    ssh_user     => 'ssh_user:s',
-    ssh_tunnel   => 'ssh_tunnel:s',
-    ssh_identity => 'ssh_identity:s',
+    'ssh-host'     => 'ssh-host=s',
+    'ssh-user'     => 'ssh-user:s',
+    'ssh-tunnel'   => 'ssh-tunnel:s',
+    'ssh-identity' => 'ssh-identity:s',
+    'svn-binary'   => 'svn-binary:s',
 );
 
 
@@ -27,10 +28,10 @@ sub execute {
     my ($self) = @_;
     my $to = $self->{to} or return;
     my $repos = $self->{repos_path} or return;
-    my $svn_binary = $self->{svn_binary} || '/usr/local/bin/svn';
+    my $svn_binary = $self->{'svn-binary'} || '/usr/local/bin/svn';
     my $command = 'update';
 
-    if ( defined $self->{ssh_host} ) {
+    if ( defined $self->{'ssh-host'} ) {
 	$self->_ssh_run(
 	    $to,
 	    $svn_binary, $command,
@@ -56,27 +57,27 @@ sub _ssh_run {
     my ($self, $path) = (shift, shift);
     eval "use Net::SSH qw(sshopen2)";
     die "Failed to load Net::SSH: $@" if $@;
-    my $host = $self->{ssh_host};
+    my $host = $self->{'ssh-host'};
     my $user = 
-    	defined $self->{ssh_user} 
-    	? $self->{ssh_user}.'@'.$host
+    	defined $self->{'ssh-user'} 
+    	? $self->{'ssh-user'}.'@'.$host
 	: $host;
 
-    my $cmd  = "cd $path && " . join(" ",@_);
-    if ( defined $self->{ssh_tunnel} ) {
+    $path =~ s/'/'"'"'/g; # quote single quotes
+    my $cmd  = "cd '$path' && " . join(" ",@_); # wrap path in single quotes
+    if ( defined $self->{'ssh-tunnel'} ) {
 	push @Net::SSH::ssh_options, 
-		"-R3690:".$self->{ssh_tunnel}.":3690";
+		"-R3690:".$self->{'ssh-tunnel'}.":3690";
     }
-    if ( defined $self->{ssh_identity} ) {
+    if ( defined $self->{'ssh-identity'} ) {
 	push @Net::SSH::ssh_options,
-		"-i".$self->{ssh_identity};
+		"-i".$self->{'ssh-identity'};
     }
 
     sshopen2($user, *READER, *WRITER, $cmd) || die "ssh: $!";
 
     while (<READER>) {
-	chomp();
-#	print "$_\n";
+	print $_;
     }
 
     close(READER);
@@ -97,8 +98,11 @@ SVN::Notify::Mirror - Keep a mirrored working copy of a repository path
 Use F<svnnotify> in F<post-commit>:
 
   svnnotify --repos-path "$1" --revision "$2" \
-    --to "/path/to/www/htdocs" --handler Mirror \
-   [--svn-binary /full/path/to/svn]
+   --handler Mirror --to "/path/to/www/htdocs" \
+   [--svn-binary /full/path/to/svn] \
+   [[--ssh-host remote_host] [--ssh-user remote_user] \
+   [--ssh-tunnel 10.0.0.2] \
+   [--ssh-identity /home/user/.ssh/id_rsa]]
 
 or better yet, use L<SVN::Notify::Config> for a more
 sophisticated setup:
@@ -113,10 +117,10 @@ sophisticated setup:
   'some/other/path/in/repository':
     handler: Mirror
     to: "/path/to/remote/www/htdocs"
-    ssh_host: "remote_host"
-    ssh_user: "remote_user"
-    ssh_tunnel: "10.0.0.2"
-    ssh_identity: "/home/user/.ssh/id_rsa"
+    ssh-host: "remote_host"
+    ssh-user: "remote_user"
+    ssh-tunnel: "10.0.0.2"
+    ssh-identity: "/home/user/.ssh/id_rsa"
 
 =head1 DESCRIPTION
 
@@ -181,25 +185,25 @@ before configuring your post-commit hook.
 
 =over 4
 
-=item * ssh_host
+=item * ssh-host
 
 This value is required and must be the hostname or IP address
 of the remote host (where the mirror directories reside).
 
-=item * ssh_user
+=item * ssh-user
 
 This value is optional and specifies the remote username that
 owns the working copy mirror.
 
-=item * ssh_identity
+=item * ssh-identity
 
 This value may be optional and should be the full path to the
 local identity file being used to authenticate with the remote
-host. If you are setting the ssh_user to be something other than
+host. If you are setting the ssh-user to be something other than
 the local user name, you will typically also have to set the
-ssh_identity.
+ssh-identity.
 
-=item * ssh_tunnel
+=item * ssh-tunnel
 
 If the remote server does not have direct access to the repository
 server, it is possible to use the tunneling capabilities of SSH
@@ -207,7 +211,7 @@ to provide temporary access to the repository.  This works even
 if repository is located internally, and the remote server is 
 located outside of a firewall or on a DMZ.
 
-The value passed as the ssh_tunnel should be the IP address to
+The value passed as the ssh-tunnel should be the IP address to
 which the local repository service is bound (whether that is
 Apache or svnserve).  This will tunnel port 3690 from the 
 repository box to localhost:3690 on the remote box.  This must
@@ -272,7 +276,7 @@ This is actually a good time to either check out the working copy
 or to confirm that the remote account has rights to update the
 working copy mirror.  If the remote server does not have direct
 network access to the repository server, you can use the tunnel
-facility of SSH (see L<ssh_tunnel> above) to provide access (e.g.
+facility of SSH (see L<ssh-tunnel> above) to provide access (e.g.
 through a firewall).
 
 =back
@@ -284,8 +288,7 @@ your options.
 
 =head1 AUTHOR
 
-  John Peacock
-  jpeacock@cpan.org
+John Peacock <jpeacock@cpan.org>
 
 =head1 COPYRIGHT
 

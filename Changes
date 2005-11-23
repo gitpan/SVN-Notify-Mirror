@@ -1,6 +1,53 @@
-Revision history for Perl module SVN::Notify::Mirror
+2005-11-23 15:46:37 John Peacock <jpeacock@cpan.org>
+	
+	Remove dynamically created files from repository.
+	Add dynamic creation of Changes from repos log.
+	Add tests to compare files at each rev.
+	Ready for next CPAN beta release.
+	
+2005-11-22 22:14:38 John Peacock <jpeacock@cpan.org>
+	
+	All three testfiles working (though not optimal)
 
-0.01 Thu Dec 16 14:36:46 2004
-	- original version; created by ExtUtils::ModuleMaker 0.32
+2005-11-20 21:38:28 John Peacock <jpeacock@cpan.org>
+	
+	Working 001 and 003 tests.  002 test does something, but
+	need more robust way to check it.
+	
+2005-11-20 21:37:06 John Peacock <jpeacock@cpan.org>
+	
+	Fix stupid global replace errors.
 
+2005-11-20 18:36:50 John Peacock <jpeacock@cpan.org>
+	
+	Always run the basic test without extracting files
+
+2005-11-20 18:35:18 John Peacock <jpeacock@cpan.org>
+	
+	First cut at adding tests
+
+2005-11-20 18:33:41 John Peacock <jpeacock@cpan.org>
+	
+	Replace underbar with hyphens in all parameters
+
+2005-11-17 22:09:49 John Peacock <jpeacock@cpan.org>
+	
+	Structure to permit intelligent testing
+
+2005-11-16 16:50:23 John Peacock <jpeacock@cpan.org>
+	
+	 r434@dsl092-168-024:  jpeacock | 2005-11-15 10:41:18 -0500
+	 Prepare to add SSH support.
+	 r435@dsl092-168-024:  jpeacock | 2005-11-16 16:49:43 -0500
+	 Implement support for remote mirrors via ssh
+	
+2005-09-11 08:17:58 John Peacock <jpeacock@cpan.org>
+	
+	For some reason, I never added this to the repository before
+	releasing to CPAN.  I'm not even sure where I did this
+	development now... ;-)
+	
+2005-09-11 08:17:14 John Peacock <jpeacock@cpan.org>
+	
+	Directory for svk import.
 
