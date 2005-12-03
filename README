@@ -39,6 +39,22 @@ INSTALLATION
     $ su
     # ./Build install
 
+
+TESTING
+    If you have the optional Net::SSH module installed, you can test it if
+    you have the following configured:
+
+    1) a personal ssh key (located in the default ~.ssh location);
+    2) your key does not have a password;
+    3) you have already used that key to connect successfully to localhost.
+
+    Normally, once you have a personal ssh key, you can simply do
+
+        $ ssh localhost
+
+    and respond to the prompt to add locahost to the list of known_hosts.
+    If this is not true, answer 'N' to the prompt during ./Build.
+
 AUTHOR
     John Peacock
     jpeacock@cpan.org

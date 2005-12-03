@@ -1,12 +1,14 @@
 ---
 name: SVN-Notify-Mirror
-version: 0.01_09
+version: 0.02
 author:
   - John Peacock <jpeacock@cpan.org>
 abstract: Keep a mirrored working copy of a repository path
 license: perl
+requires:
+  Module::Build: 0.2611
 provides:
   SVN::Notify::Mirror:
     file: lib/SVN/Notify/Mirror.pm
-    version: 0.01_09
-generated_by: Module::Build version 0.2701
+    version: 0.02
+generated_by: Module::Build version 0.2611

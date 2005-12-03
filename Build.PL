@@ -16,6 +16,9 @@ my $class = Module::Build->subclass
 my $mb = $class->new
     ( module_name     => 'SVN::Notify::Mirror',
       license         => 'perl',
+      requires        => {
+	  'Module::Build' => 0.2611,
+      },
       auto_features   => {
 	  ssh_support => { 
 	      description => "Use remote mirrors via ssh",
@@ -31,7 +34,8 @@ my $mb = $class->new
 	  ['t/testconfig','t/002_config.t','t/002_config'],
 	  't/003_sshtest.t.PL' => 't/003_sshtest.t',
       },
-      add_to_cleanup => ['t/test-repos', 't/wc-*'],
+      add_to_cleanup =>
+	  ['t/test-repos', 't/wc-*',],
     );
 
 if ( $mb->feature('ssh_support') ) {
