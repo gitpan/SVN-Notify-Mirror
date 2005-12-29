@@ -5,7 +5,7 @@ use strict;
 
 BEGIN {
     use vars qw ($VERSION @ISA);
-    $VERSION     = '0.02_07';
+    $VERSION     = '0.02_09';
     @ISA         = qw (SVN::Notify);
 }
 
@@ -34,9 +34,9 @@ sub execute {
 	-r => $self->{revision},
     );  	
 
-    # need to swap function calls for backwards compatibility
+    # need to swap function calls for backwards compatibility for now
     if ( defined $self->{'ssh_host'} 
-    	 and not ref($self) eq 'SVN::Notify::Mirror::SSH')
+    	 and not ref($self) eq 'SVN::Notify::Mirror::SSH') # ugly
     {	
 	no warnings 'redefine';
 	warn "Deprecated - please use SVN::Notify::Mirror::SSH directly";
@@ -103,6 +103,7 @@ Use F<svnnotify> in F<post-commit>:
   svnnotify --repos-path "$1" --revision "$2" \
    --handler Mirror --to "/path/to/www/htdocs" \
    [--svn-binary /full/path/to/svn] \
+   [--tag-regex "regex"]
 
 or better yet, use L<SVN::Notify::Config> for a more
 sophisticated setup:
@@ -117,6 +118,10 @@ sophisticated setup:
   'some/other/path/in/repository':
     handler: Mirror
     to: "/path/to/remote/www/htdocs"
+  'some/project/tags':
+    handler: Mirror
+    to: "/path/to/another/dir"
+    tag-regex: "TRUNK-"
 
 =head1 DESCRIPTION
 
@@ -172,9 +177,80 @@ Specified which directory should be updated.
 
 Used for mirrors on some other box, e.g. a web server in a DMZ
 network.  See L<SVN::Notify::Mirror::SSH> or L<SVN::Notify::Mirror::Rsync>
-for more details.
+for more details.  All C<ssh-*> options are now deprecated in the
+base class and support for them will be removed in the next major release.
+Please update your configurations (see L<SVN::Notify::Mirror::SSH> for
+details).
 
 =over 4
+
+=head2 Methods of Mirroring
+
+There are two schemes to keep a directory synced to a path in the
+repository:
+
+=over 4
+
+=item 1. Update a checked out working copy
+
+This is the normal mode of operation and is commonly used to keep a
+test web server in sync with the repository on every commit.
+
+=item 2. Switch a working copy to a new tag
+
+This is the preferred method when you want to keep a production web
+server up to date with only specific revisions, through the use of
+smart tagging.
+
+=back
+
+For the latter case, L<SVN::Notify::Mirror> can be configured to
+monitor a path in the repository and only trigger an update when
+the path matches a specific regular expression, and do so by switching
+the mirrored path to the new tag.
+
+=over 4
+
+=item * tag-regex
+
+This optional parameter works with any L<Local Mirror> or L<Remote Mirror>,
+using any of the applicable transfer methods (currently local, SSH, or
+Rsync).  The C<--tag-regex> parameter takes a string which will be 
+interpreted as a conventional Perl regex, and only those repository
+paths which match the regex will be updated.  The regex also determines
+what the mirrored directory will be switched to.
+
+For example, using a SVN::Notify::Config file (which is the most useful
+way to employ this option):
+
+  #!/usr/bin/perl -MSVN::Notify::Config=$0
+  --- #YAML:1.0
+  '':
+    PATH: "/usr/bin:/usr/local/bin"
+  'project1/trunk':
+    handler: Mirror
+    to: "/path/to/test/htdocs"
+  'project1/tags':
+    handler: Mirror
+    to: "/path/to/production/htdocs"
+    tag-regex: "TRUNK-"
+ 
+This would have the effect of keeping the path C</path/to/test/htdocs>
+in sync on every commit, but C</path/to/production/htdocs> would be
+switched only when a tag was created in C<project1/tags> that matched
+the string C<TRUNK->.  B<NOTE:> this is not a sophisticated regex; in
+particular you should not employ anchors, since the URL is not split
+into repos-root and path segments before testing.
+
+To initialize the switch directory, you must perform an initial 
+checkout like this:
+
+ $ svn checkout file://$REPOS/project1/tags/TRUNK-0_0_1
+
+where C<TRUNK-0_0_1> is the name of any path in the C<.../tags/>
+folder.
+
+=back
 
 =head1 AUTHOR
 

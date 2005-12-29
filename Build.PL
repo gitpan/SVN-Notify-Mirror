@@ -28,14 +28,19 @@ my $mb = $class->new
 	      description => "Use compact YAML script",
 	      requires    => {SVN::Notify::Config => 0.06}
 	  },
+	  rsync_support => {
+	      description => "Transfer files with rsync",
+	      requires    => {File::Rsync => 0.42}
+	  },
       },
       PL_files => { 
 	  't/002_config.t.PL' =>
 	  ['t/testconfig','t/002_config.t','t/002_config'],
 	  't/003_sshtest.t.PL' => 't/003_sshtest.t',
+	  't/004_rsynctest.t.PL' => 't/004_rsynctest.t',
       },
       add_to_cleanup =>
-	  ['t/test-repos', 't/wc-*',],
+	  ['t/test-repos', 't/wc-*'],
     );
 
 if ( $mb->feature('ssh_support') ) {
@@ -43,6 +48,10 @@ if ( $mb->feature('ssh_support') ) {
     	$mb->y_n(
     "Do you want to run the SSH tests?\n".
     "(see the README for details)",'N');
+}
+
+if ( $mb->feature('rsync_support') ) {
+    $mb->notes( rsynctests => 1 );
 }
 
 $mb->create_build_script;

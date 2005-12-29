@@ -29,6 +29,11 @@ my $wc_map = {
 	},
 };
 
+my $wc_rsync_map;
+foreach my $key ( keys %$wc_map ) {
+    $wc_rsync_map->{$key.'-r'} = $wc_map->{$key};
+}
+
 my ($repos_history, $changes);
 my $eval;
 while (<DATA>) {
@@ -87,6 +92,7 @@ sub reset_test_wcs {
 sub run_tests {
     my $command = shift;
     my $TESTER;
+    my $rsync_test = 0;
 
     for (my $rev = 1; $rev <= $maxrev; $rev++) {
 	foreach my $wc ( keys %{$wc_map} ) {
@@ -96,6 +102,8 @@ sub run_tests {
 	    $args{'repos-path'} = $repos_path;
 	    $args{'handler'} = defined $args{'ssh-host'}
 	                       ? 'Mirror::SSH'
+			       : defined $args{'rsync-host'}
+			       ? 'Mirror::Rsync'
 			       : 'Mirror';
 
 
@@ -114,6 +122,12 @@ sub run_tests {
 		$args{'tag-regex'} = $wc_map->{$wc}->{'tag_regex'};
 	    }
 
+	    # need to specify destination for rsync tests
+	    if ( defined $args{'rsync-host'} ) {
+		$rsync_test = 1;
+		$args{'rsync-dest'} = "$PWD/t/$wc\-r";
+	    }
+
 	    _test(
 		$change, 
 		$path,
@@ -121,7 +135,12 @@ sub run_tests {
 		%args
 	    );
 	}
-	_compare_directories($rev);
+	_compare_directories($rev, $wc_map);
+
+	if ($rsync_test) {
+	    _compare_directories($rev, $wc_rsync_map);
+	    $rsync_test = 0;
+	}
     }
 
 }
@@ -172,13 +191,13 @@ sub _build_command {
 }
 
 sub _compare_directories {
-    my $rev = shift;
+    my ($rev, $wc_hash) = @_;
     my $history = $repos_history->[$rev];
     my $this_rev = {};
 
-    foreach my $wc ( keys %$wc_map ) {
-	next unless $rev >= $wc_map->{$wc}->{'base_rev'};
-	my $subhistory = _expand_path($history, $wc_map->{$wc}->{'path'});
+    foreach my $wc ( keys %$wc_hash ) {
+	next unless $rev >= $wc_hash->{$wc}->{'base_rev'};
+	my $subhistory = _expand_path($history, $wc_hash->{$wc}->{'path'});
 	$this_rev = _scan_dir("t/$wc");
 	is_deeply(
 	    $subhistory,

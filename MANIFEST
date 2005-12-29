@@ -5,11 +5,13 @@ Todo
 Changes
 lib/SVN/Notify/Mirror.pm
 lib/SVN/Notify/Mirror/SSH.pm
+lib/SVN/Notify/Mirror/Rsync.pm
 Build.PL
 Makefile.PL
 META.yml
 t/001_basic.t
 t/002_config.t.PL
 t/003_sshtest.t.PL
+t/004_rsynctest.t.PL
 t/coretests.pm
 t/test-repos.dump

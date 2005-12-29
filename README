@@ -1,35 +1,20 @@
 NAME
     SVN::Notify::Mirror - Keep a mirrored working copy of a repository path
 
-SYNOPSIS
-    Use svnnotify in post-commit:
-
-      svnnotify --repos-path "$1" --revision "$2" \
-        --to "/path/to/www/htdocs" --handler Mirror \
-       [--svn-binary /full/path/to/svn]
-
-    or better yet, use SVN::Notify::Config for a more sophisticated setup:
-
-      #!/usr/bin/perl -MSVN::Notify::Config=$0
-      --- #YAML:1.0
-      '':
-        PATH: "/usr/bin:/usr/local/bin"
-      'path/in/repository':
-        handler: Mirror
-        to: "/path/to/www/htdocs"
-      'some/other/path/in/repository':
-        handler: Mirror::SSH
-        to: "/path/to/remote/www/htdocs"
-        ssh_host: "remote_host"
-        ssh_user: "remote_user"
-        ssh_tunnel: "10.0.0.2"
-        ssh_identity: "/home/user/.ssh/id_rsa"
-
 DESCRIPTION
     Keep a directory in sync with a portion of a Subversion repository.
     Typically used to keep a development web server in sync with the changes
     made to the repository. This directory can either be on the same box as
-    the repository itself, or it can be remote (via SSH connection).
+    the repository itself, or it can be remote.
+
+    NEW in this version is:
+    	- support for multiple transport backends( SSH and Rsync)
+	- support for switching to a newly created tag (instead of
+	  just updating a working copy)
+
+    NOTE: Please use SVN::Notify::Mirror::SSH directly for all new
+    installs.  The compatibility feature to pass through ssh-* options
+    will be removed in version 0.05.  See the POD for more details.
 
 INSTALLATION
     Install Module::Build and then run:
@@ -56,6 +41,5 @@ TESTING
     If this is not true, answer 'N' to the prompt during ./Build.
 
 AUTHOR
-    John Peacock
-    jpeacock@cpan.org
+    John Peacock <jpeacock@cpan.org>
 
