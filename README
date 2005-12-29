@@ -18,7 +18,7 @@ SYNOPSIS
         handler: Mirror
         to: "/path/to/www/htdocs"
       'some/other/path/in/repository':
-        handler: Mirror
+        handler: Mirror::SSH
         to: "/path/to/remote/www/htdocs"
         ssh_host: "remote_host"
         ssh_user: "remote_user"

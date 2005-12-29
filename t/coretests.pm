@@ -1,68 +1,42 @@
 #!/usr/bin/perl 
 use Test::More qw(no_plan);
+#use Data::Dumper;
 use Cwd;
-our $PWD = getcwd;
-our $repos_path = "$PWD/t/test-repos";
+my $PWD = getcwd;
+my $repos_path = "$PWD/t/test-repos";
 
-$repos_history = [
-    {}, # no files exist at rev 0
-    {
-	'wc-trunk' => { # files created on trunk at rev 1
-	    file1 => 6,
-	    dir1  => {},
+my $wc_map = {
+    'wc-trunk' =>
+    	{
+	    path => 'project1/trunk',
+	    base_rev => 1,
+	    command => 'update',
 	},
-	'wc-branch' => {}, # branch created on rev 1
-    },
-    {
-	'wc-trunk' => {
-	    file1 => 6,
-	    dir1  => {},
+    'wc-tag' =>
+        {
+	    path => 'project1/tags/TRUNK-1135534439',
+	    base_rev => 3,
+	    command => 'switch',
+	    switch_rev => 7,
+	    switch_path => 'project1/tags/TRUNK-1135538253',
+	    tag_regex => 'TRUNK-',
 	},
-	'wc-branch' => { # branch copied from trunk on rev 2
-	    file1 => 6,
-	    dir1  => {},
+    'wc-branch' =>
+    	{
+	    path => 'project1/branches/branch1',
+	    base_rev => 4,
+	    command => 'update',
 	},
-    },
-    {
-	'wc-trunk' => {
-	    file1 => 6,
-	    dir1  => {}
-	},
-	'wc-branch' => { # branch changed on rev 3
-	    file1 => 6,
-	    file2 => 6,
-	    dir1  => {
-		file3 => 6
-	    },
-	},
-    },
-    {
-	'wc-trunk' => { # branch merged to trunk on rev 4
-	    file1 => 6,
-	    file2 => 6,
-	    dir1  => {
-		file3 => 6
-	    },
-	},
-	'wc-branch' => { 
-	    file1 => 6,
-	    file2 => 6,
-	    dir1  => {
-		file3 => 6
-	    },
-	},
-    },
-];
+};
 
-$changes = [
-    {}, # zeroth has nothing
-    {}, # nothing to see here, either
-    {}, # nor here, for that matter
-    { 'dir1/file3' => 'A',
-	'file2'      => 'A', },
-    { 'dir1/file3' => 'A',
-	'file2'      => 'A', },
-];
+my ($repos_history, $changes);
+my $eval;
+while (<DATA>) {
+    $eval .= $_;
+}
+eval $eval;
+
+my $maxrev = 7; # change this later to be the actual number of revs
 
 sub reset_all_tests {
     create_test_repos();
@@ -86,72 +60,99 @@ svnadmin load --quiet $repos_path < ${repos_path}.dump
 # Create test WC's before proceeding with tests the first time
 sub create_test_wcs {
     unless ( -d "$PWD/t/wc-trunk" ) {
+	foreach my $wc ( keys %{$wc_map} ) {
+	    my $path = $wc_map->{$wc}->{'path'};
+	    my $rev = $wc_map->{$wc}->{'base_rev'};
 
-	system(<<"") == 0 or die "system failed: $?";
-svn checkout -q -r1 file://$repos_path/trunk $PWD/t/wc-trunk
-
-	system(<<"") == 0 or die "system failed: $?";
-svn checkout -q -r2 file://$repos_path/branches/branch1 $PWD/t/wc-branch
-
+	    my $cmd = "svn checkout -q -r$rev ".
+		"file://$repos_path/$path $PWD/t/$wc";
+	    system($cmd) == 0 or die "system failed: $?";
+	}
     }
 }
 
 # Reset the working copies
 sub reset_test_wcs {
-    system("svn update -q -r1 $PWD/t/wc-trunk") == 0
-      or die "system failed: $?";
+    foreach my $wc ( keys %{$wc_map} ) {
+	my $path = $wc_map->{$wc}->{'path'};
+	my $rev = $wc_map->{$wc}->{'base_rev'};
+	my $command = $wc_map->{$wc}->{'command'};
 
-    system("svn update -q -r2 $PWD/t/wc-branch") == 0
-      or die "system failed: $?";
+	my $cmd = "svn $command -q -r$rev ".
+	    "file://$repos_path/$path $PWD/t/$wc";
+	system($cmd) == 0 or die "system failed: $?";
+    }
 }
 
 sub run_tests {
     my $command = shift;
-    my %args = @_;
     my $TESTER;
 
-    # Common to all tests
-    $args{'repos-path'} = $repos_path;
-    $args{'handler'}    = 'Mirror';
+    for (my $rev = 1; $rev <= $maxrev; $rev++) {
+	foreach my $wc ( keys %{$wc_map} ) {
+	    next unless $rev >= $wc_map->{$wc}->{'base_rev'};
+	    my %args = @_;
+	    # Common to all tests
+	    $args{'repos-path'} = $repos_path;
+	    $args{'handler'} = defined $args{'ssh-host'}
+	                       ? 'Mirror::SSH'
+			       : 'Mirror';
 
-    # Test t/wc-trunk
-    $args{'to'}       = "$PWD/t/wc-branch";
 
-    $args{'revision'} = 2;
-    _test('^At revision (\d+)\.', $changes->[2], $command, %args);
-    _compare_directories(2);
+	    $args{'to'}       = "$PWD/t/$wc";
+	    $args{'revision'} = $rev;
 
-    $args{'revision'} = 3;
-    _test('^Updated to revision (\d+)\.', $changes->[3], $command, %args);
-    _compare_directories(3);
+	    my $path = $wc_map->{$wc}->{'path'};
+	    my $change = $changes->[$rev]->{$path} 
+	    	if exists $changes->[$rev]->{$path};
+	    next unless $change;
+	    
+	    # special case the switched directories
+	    if ( $wc_map->{$wc}->{'command'} eq 'switch'
+		&& $rev >= $wc_map->{$wc}->{'switch_rev'} ) {
+		$path = $wc_map->{$wc}->{'switch_path'};
+		$args{'tag-regex'} = $wc_map->{$wc}->{'tag_regex'};
+	    }
 
-    # Test the t/wc-trunk
-    $args{'to'}       = "$PWD/t/wc-trunk";
+	    _test(
+		$change, 
+		$path,
+		$command, 
+		%args
+	    );
+	}
+	_compare_directories($rev);
+    }
 
-    $args{'revision'} = 4;
-    _test('^Updated to revision (\d+)\.', $changes->[4], $command, %args);
-    _compare_directories(4);
 }
 
 sub _test {
-    my ($regex, $expected, $command, %args) = @_;
+    my ($expected, $prefix, $command, %args) = @_;
     my $test = {};
 
     open $TESTER, '-|', _build_command($command, %args);
     while (<$TESTER>) {
 	chomp;
-	if ( /$regex/ ) {
-	    ok ( $1 == $args{revision} , "Updated to correct revision: "
+	if ( /^At revision (\d+)\./ ) {
+	    ok ( $1 == $args{revision} , "No changes in $prefix at revision: "
+	    	. $args{revision} );
+	    last; # no need to read any more input
+	}
+	elsif ( /^Updated to revision (\d+)\./ ) {
+	    ok ( $1 == $args{revision} , "Updated $prefix to correct revision: "
 	    	. $args{revision} );
 	}
 	else {
 	    my ($status, $target) = split;
-	    $test->{$target} = $status;
+	    $test->{$prefix.'/'.$target} = $status;
 	}
     }
-    is_deeply($test, $expected, "Correct files updated at rev: " . 
-    	$args{revision});
     close $TESTER;
+    is_deeply(
+    	$test,
+	$expected, 
+	"Correct files updated in $prefix at rev: " . $args{revision}
+    ) if scalar(keys %$test) > 0;
 }
 
 sub _build_command {
@@ -175,11 +176,23 @@ sub _compare_directories {
     my $history = $repos_history->[$rev];
     my $this_rev = {};
 
-    foreach my $dir ( keys %$history ) {
-	$this_rev->{$dir} = _scan_dir("t/$dir");
+    foreach my $wc ( keys %$wc_map ) {
+	next unless $rev >= $wc_map->{$wc}->{'base_rev'};
+	my $subhistory = _expand_path($history, $wc_map->{$wc}->{'path'});
+	$this_rev = _scan_dir("t/$wc");
+	is_deeply(
+	    $subhistory,
+	    $this_rev,
+	    "Directories are consistent at rev: $rev"
+	);
     }
-	
-    is_deeply($history, $this_rev, "Directories are consistent at rev: $rev");
+}
+
+sub _expand_path {
+    my ($tree, $path) = @_;
+    my @paths = split('/',$path);
+    my $eval = "\$tree->{'".join("'}->{'", @paths)."'}";
+    return eval $eval;
 }
 
 sub _scan_dir {
@@ -203,3 +216,692 @@ sub _scan_dir {
 }
 
 1; # magic return
+__DATA__
+$repos_history = [
+  {},
+  {
+    'project2' => {
+      'trunk' => {},
+      'branches' => {},
+      'tags' => {}
+    },
+    'project1' => {
+      'trunk' => {},
+      'branches' => {},
+      'tags' => {}
+    }
+  },
+  {
+    'project2' => {
+      'trunk' => {},
+      'branches' => {},
+      'tags' => {}
+    },
+    'project1' => {
+      'trunk' => {
+        'file1' => '6',
+        'dir1' => {
+          'file2' => '6'
+        }
+      },
+      'branches' => {},
+      'tags' => {}
+    }
+  },
+  {
+    'project2' => {
+      'trunk' => {},
+      'branches' => {},
+      'tags' => {}
+    },
+    'project1' => {
+      'trunk' => {
+        'file1' => '6',
+        'dir1' => {
+          'file2' => '6'
+        }
+      },
+      'branches' => {},
+      'tags' => {
+        'TRUNK-1135534439' => {
+          'file1' => '6',
+          'dir1' => {
+            'file2' => '6'
+          }
+        }
+      }
+    }
+  },
+  {
+    'project2' => {
+      'trunk' => {},
+      'branches' => {},
+      'tags' => {}
+    },
+    'project1' => {
+      'trunk' => {
+        'file1' => '6',
+        'dir1' => {
+          'file2' => '6'
+        }
+      },
+      'branches' => {
+        'branch1' => {
+          'file1' => '6',
+          'dir1' => {
+            'file2' => '6'
+          }
+        }
+      },
+      'tags' => {
+        'TRUNK-1135534439' => {
+          'file1' => '6',
+          'dir1' => {
+            'file2' => '6'
+          }
+        }
+      }
+    }
+  },
+  {
+    'project2' => {
+      'trunk' => {},
+      'branches' => {},
+      'tags' => {}
+    },
+    'project1' => {
+      'trunk' => {
+        'file1' => '6',
+        'dir1' => {
+          'file2' => '6'
+        }
+      },
+      'branches' => {
+        'branch1' => {
+          'file1' => '6',
+          'file3' => '6',
+          'dir2' => {
+            'file4' => '6'
+          },
+          'dir1' => {
+            'file2' => '6'
+          }
+        }
+      },
+      'tags' => {
+        'TRUNK-1135534439' => {
+          'file1' => '6',
+          'dir1' => {
+            'file2' => '6'
+          }
+        }
+      }
+    }
+  },
+  {
+    'project2' => {
+      'trunk' => {},
+      'branches' => {},
+      'tags' => {}
+    },
+    'project1' => {
+      'trunk' => {
+        'file1' => '6',
+        'file3' => '6',
+        'dir2' => {
+          'file4' => '6'
+        },
+        'dir1' => {
+          'file2' => '6'
+        }
+      },
+      'branches' => {
+        'branch1' => {
+          'file1' => '6',
+          'file3' => '6',
+          'dir2' => {
+            'file4' => '6'
+          },
+          'dir1' => {
+            'file2' => '6'
+          }
+        }
+      },
+      'tags' => {
+        'TRUNK-1135534439' => {
+          'file1' => '6',
+          'dir1' => {
+            'file2' => '6'
+          }
+        }
+      }
+    }
+  },
+  {
+    'project2' => {
+      'trunk' => {},
+      'branches' => {},
+      'tags' => {}
+    },
+    'project1' => {
+      'trunk' => {
+        'file1' => '6',
+        'file3' => '6',
+        'dir2' => {
+          'file4' => '6'
+        },
+        'dir1' => {
+          'file2' => '6'
+        }
+      },
+      'branches' => {
+        'branch1' => {
+          'file1' => '6',
+          'file3' => '6',
+          'dir2' => {
+            'file4' => '6'
+          },
+          'dir1' => {
+            'file2' => '6'
+          }
+        }
+      },
+      'tags' => {
+        'TRUNK-1135538253' => {
+          'file1' => '6',
+          'file3' => '6',
+          'dir2' => {
+            'file4' => '6'
+          },
+          'dir1' => {
+            'file2' => '6'
+          }
+        },
+        'TRUNK-1135534439' => {
+          'file1' => '6',
+          'dir1' => {
+            'file2' => '6'
+          }
+        }
+      }
+    }
+  },
+  {
+    'project2' => {
+      'trunk' => {
+        'dir3' => {
+          'file6' => '6'
+        },
+        'file5' => '6',
+        'dir4' => {
+          'file7' => '6',
+          'file8' => '6'
+        }
+      },
+      'branches' => {},
+      'tags' => {}
+    },
+    'project1' => {
+      'trunk' => {
+        'file1' => '6',
+        'file3' => '6',
+        'dir2' => {
+          'file4' => '6'
+        },
+        'dir1' => {
+          'file2' => '6'
+        }
+      },
+      'branches' => {
+        'branch1' => {
+          'file1' => '6',
+          'file3' => '6',
+          'dir2' => {
+            'file4' => '6'
+          },
+          'dir1' => {
+            'file2' => '6'
+          }
+        }
+      },
+      'tags' => {
+        'TRUNK-1135538253' => {
+          'file1' => '6',
+          'file3' => '6',
+          'dir2' => {
+            'file4' => '6'
+          },
+          'dir1' => {
+            'file2' => '6'
+          }
+        },
+        'TRUNK-1135534439' => {
+          'file1' => '6',
+          'dir1' => {
+            'file2' => '6'
+          }
+        }
+      }
+    }
+  },
+  {
+    'project2' => {
+      'trunk' => {
+        'dir3' => {
+          'file6' => '6'
+        },
+        'file5' => '6',
+        'dir4' => {
+          'file7' => '6',
+          'file8' => '6'
+        }
+      },
+      'branches' => {},
+      'tags' => {
+        'TRUNK-1135538991' => {
+          'dir3' => {
+            'file6' => '6'
+          },
+          'file5' => '6',
+          'dir4' => {
+            'file7' => '6',
+            'file8' => '6'
+          }
+        }
+      }
+    },
+    'project1' => {
+      'trunk' => {
+        'file1' => '6',
+        'file3' => '6',
+        'dir2' => {
+          'file4' => '6'
+        },
+        'dir1' => {
+          'file2' => '6'
+        }
+      },
+      'branches' => {
+        'branch1' => {
+          'file1' => '6',
+          'file3' => '6',
+          'dir2' => {
+            'file4' => '6'
+          },
+          'dir1' => {
+            'file2' => '6'
+          }
+        }
+      },
+      'tags' => {
+        'TRUNK-1135538253' => {
+          'file1' => '6',
+          'file3' => '6',
+          'dir2' => {
+            'file4' => '6'
+          },
+          'dir1' => {
+            'file2' => '6'
+          }
+        },
+        'TRUNK-1135534439' => {
+          'file1' => '6',
+          'dir1' => {
+            'file2' => '6'
+          }
+        }
+      }
+    }
+  },
+  {
+    'project2' => {
+      'trunk' => {
+        'dir3' => {
+          'file6' => '6'
+        },
+        'file5' => '6',
+        'dir4' => {
+          'file7' => '6',
+          'file8' => '6'
+        }
+      },
+      'branches' => {
+        'branch2' => {
+          'dir3' => {
+            'file6' => '6'
+          },
+          'file5' => '6',
+          'dir4' => {
+            'file7' => '6',
+            'file8' => '6'
+          }
+        }
+      },
+      'tags' => {
+        'TRUNK-1135538991' => {
+          'dir3' => {
+            'file6' => '6'
+          },
+          'file5' => '6',
+          'dir4' => {
+            'file7' => '6',
+            'file8' => '6'
+          }
+        }
+      }
+    },
+    'project1' => {
+      'trunk' => {
+        'file1' => '6',
+        'file3' => '6',
+        'dir2' => {
+          'file4' => '6'
+        },
+        'dir1' => {
+          'file2' => '6'
+        }
+      },
+      'branches' => {
+        'branch1' => {
+          'file1' => '6',
+          'file3' => '6',
+          'dir2' => {
+            'file4' => '6'
+          },
+          'dir1' => {
+            'file2' => '6'
+          }
+        }
+      },
+      'tags' => {
+        'TRUNK-1135538253' => {
+          'file1' => '6',
+          'file3' => '6',
+          'dir2' => {
+            'file4' => '6'
+          },
+          'dir1' => {
+            'file2' => '6'
+          }
+        },
+        'TRUNK-1135534439' => {
+          'file1' => '6',
+          'dir1' => {
+            'file2' => '6'
+          }
+        }
+      }
+    }
+  },
+  {
+    'project2' => {
+      'trunk' => {
+        'dir3' => {
+          'file6' => '6'
+        },
+        'file5' => '6',
+        'dir4' => {
+          'file7' => '6',
+          'file8' => '6'
+        }
+      },
+      'branches' => {
+        'branch2' => {
+          'file5.new' => '6',
+          'dir5' => {
+            'file6' => '6'
+          },
+          'dir4' => {
+            'file7' => '6',
+            'file8' => '6'
+          }
+        }
+      },
+      'tags' => {
+        'TRUNK-1135538991' => {
+          'dir3' => {
+            'file6' => '6'
+          },
+          'file5' => '6',
+          'dir4' => {
+            'file7' => '6',
+            'file8' => '6'
+          }
+        }
+      }
+    },
+    'project1' => {
+      'trunk' => {
+        'file1' => '6',
+        'file3' => '6',
+        'dir2' => {
+          'file4' => '6'
+        },
+        'dir1' => {
+          'file2' => '6'
+        }
+      },
+      'branches' => {
+        'branch1' => {
+          'file1' => '6',
+          'file3' => '6',
+          'dir2' => {
+            'file4' => '6'
+          },
+          'dir1' => {
+            'file2' => '6'
+          }
+        }
+      },
+      'tags' => {
+        'TRUNK-1135538253' => {
+          'file1' => '6',
+          'file3' => '6',
+          'dir2' => {
+            'file4' => '6'
+          },
+          'dir1' => {
+            'file2' => '6'
+          }
+        },
+        'TRUNK-1135534439' => {
+          'file1' => '6',
+          'dir1' => {
+            'file2' => '6'
+          }
+        }
+      }
+    }
+  },
+  {
+    'project2' => {
+      'trunk' => {
+        'dir3' => {
+          'file6' => '6'
+        },
+        'file5' => '6',
+        'dir4' => {
+          'file7' => '6',
+          'file8' => '6'
+        }
+      },
+      'branches' => {
+        'branch2' => {
+          'file5.new' => '6',
+          'dir5' => {
+            'file6' => '6'
+          },
+          'dir4' => {
+            'file7' => '6',
+            'file8' => '6'
+          }
+        }
+      },
+      'tags' => {
+        'TRUNK-1135539568' => {
+          'dir3' => {
+            'file6' => '6'
+          },
+          'file5' => '6',
+          'dir4' => {
+            'file7' => '6',
+            'file8' => '6'
+          }
+        },
+        'TRUNK-1135538991' => {
+          'dir3' => {
+            'file6' => '6'
+          },
+          'file5' => '6',
+          'dir4' => {
+            'file7' => '6',
+            'file8' => '6'
+          }
+        }
+      }
+    },
+    'project1' => {
+      'trunk' => {
+        'file1' => '6',
+        'file3' => '6',
+        'dir2' => {
+          'file4' => '6'
+        },
+        'dir1' => {
+          'file2' => '6'
+        }
+      },
+      'branches' => {
+        'branch1' => {
+          'file1' => '6',
+          'file3' => '6',
+          'dir2' => {
+            'file4' => '6'
+          },
+          'dir1' => {
+            'file2' => '6'
+          }
+        }
+      },
+      'tags' => {
+        'TRUNK-1135538253' => {
+          'file1' => '6',
+          'file3' => '6',
+          'dir2' => {
+            'file4' => '6'
+          },
+          'dir1' => {
+            'file2' => '6'
+          }
+        },
+        'TRUNK-1135534439' => {
+          'file1' => '6',
+          'dir1' => {
+            'file2' => '6'
+          }
+        }
+      }
+    }
+  }
+];
+$changes = [
+  {},
+  { '' =>
+      {
+	'project2' => 'A',
+	'project1' => 'A',
+	'project2/tags' => 'A',
+	'project1/trunk' => 'A',
+	'project2/branches' => 'A',
+	'project2/trunk' => 'A',
+	'project1/branches' => 'A',
+	'project1/tags' => 'A'
+      },
+  },
+  { 
+    'project1/trunk' =>
+      {
+	'project1/trunk/file1' => 'A',
+	'project1/trunk/dir1/file2' => 'A',
+	'project1/trunk/dir1' => 'A'
+      },
+  },
+  { 
+    'project1/trunk' => {},
+    'project1/tags/TRUNK-1135534439' =>
+      {
+	'project1/tags/TRUNK-1135534439/file1' => 'A',
+	'project1/tags/TRUNK-1135534439/dir1/file2' => 'A',
+	'project1/tags/TRUNK-1135534439/dir1' => 'A'
+      },
+  },
+  { 
+    'project1/trunk' => {},
+    'project1/tags/TRUNK-1135534439' => {},
+    'project1/branches/branch1',
+      {
+	'project1/branches/branch1/file1' => 'A',
+	'project1/branches/branch1/dir1/file2' => 'A',
+	'project1/branches/branch1/dir1' => 'A'
+      },
+  },
+  { 'project1/branches/branch1' =>
+      {
+	'project1/branches/branch1/dir2/file4' => 'A',
+	'project1/branches/branch1/file3' => 'A',
+	'project1/branches/branch1/dir2' => 'A'
+      },
+  },
+  { 'project1/trunk' =>
+      {
+	'project1/trunk/file3' => 'A',
+	'project1/trunk/dir2' => 'A',
+	'project1/trunk/dir2/file4' => 'A'
+      },
+  },
+  { 'project1/tags/TRUNK-1135538253' =>
+      {
+	'project1/tags/TRUNK-1135538253/file3' => 'A',
+	'project1/tags/TRUNK-1135538253/dir2' => 'A',
+	'project1/tags/TRUNK-1135538253/dir2/file4' => 'A'
+      },
+  },
+  { 'project2/trunk' =>
+      {
+	'project2/trunk/dir4/file7' => 'A',
+	'project2/trunk/dir4/file8' => 'A',
+	'project2/trunk/dir3/file6' => 'A',
+	'project2/trunk/dir3' => 'A',
+	'project2/trunk/file5' => 'A',
+	'project2/trunk/dir4' => 'A'
+      },
+  },
+  { 'project2/tags/TRUNK-1135538991' =>
+      {
+	'project2/tags/TRUNK-1135538991/dir4/file7' => 'A',
+	'project2/tags/TRUNK-1135538991/dir4/file8' => 'A',
+	'project2/tags/TRUNK-1135538991/dir3/file6' => 'A',
+	'project2/tags/TRUNK-1135538991/dir3' => 'A',
+	'project2/tags/TRUNK-1135538991/file5' => 'A',
+	'project2/tags/TRUNK-1135538991/dir4' => 'A'
+      },
+  },
+  { 'project2/branches/branch2' =>
+      {
+	'project2/branches/branch2' => 'A'
+      },
+  },
+  { 'project2/branches/branch2' =>
+      {
+	'project2/branches/branch2/dir5' => 'A',
+	'project2/branches/branch2/file5' => 'D',
+	'project2/branches/branch2/dir3' => 'D',
+	'project2/branches/branch2/file5.new' => 'A'
+      },
+  },
+  { 'project2/tags/TRUNK-1135539568' =>
+      {
+	'project2/tags/TRUNK-1135539568' => 'A'
+      }
+  },
+];

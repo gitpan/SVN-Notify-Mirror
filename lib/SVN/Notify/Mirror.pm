@@ -5,82 +5,86 @@ use strict;
 
 BEGIN {
     use vars qw ($VERSION @ISA);
-    $VERSION     = 0.02;
+    $VERSION     = '0.02_07';
     @ISA         = qw (SVN::Notify);
 }
 
 __PACKAGE__->register_attributes(
-    'ssh-host'     => 'ssh-host=s',
-    'ssh-user'     => 'ssh-user:s',
-    'ssh-tunnel'   => 'ssh-tunnel:s',
-    'ssh-identity' => 'ssh-identity:s',
-    'svn-binary'   => 'svn-binary:s',
+    'ssh_host'     => 'ssh-host=s',
+    'ssh_user'     => 'ssh-user:s',
+    'ssh_tunnel'   => 'ssh-tunnel:s',
+    'ssh_identity' => 'ssh-identity:s',
+    'svn_binary'   => 'svn-binary:s',
+    'tag_regex'    => 'tag-regex:s',
 );
-
 
 sub prepare {
     my $self = shift;
     $self->prepare_recipients;
+    $self->prepare_files;
 }
 
 sub execute {
     my ($self) = @_;
     my $to = $self->{to} or return;
     my $repos = $self->{repos_path} or return;
-    my $svn_binary = $self->{'svn-binary'} || '/usr/local/bin/svn';
+    my $svn_binary = $self->{'svn_binary'} || '/usr/local/bin/svn';
     my $command = 'update';
+    my @args = (
+	-r => $self->{revision},
+    );  	
 
-    if ( defined $self->{'ssh-host'} ) {
-	$self->_ssh_run(
-	    $to,
-	    $svn_binary, $command,
-	    -r => $self->{revision},
-	);
+    # need to swap function calls for backwards compatibility
+    if ( defined $self->{'ssh_host'} 
+    	 and not ref($self) eq 'SVN::Notify::Mirror::SSH')
+    {	
+	no warnings 'redefine';
+	warn "Deprecated - please use SVN::Notify::Mirror::SSH directly";
+	require SVN::Notify::Mirror::SSH;
+	*_cd_run = \&SVN::Notify::Mirror::SSH::_cd_run;
     }
-    else {
-	$self->_cd_run(
+
+    # deal with the possible switch case
+    if ( defined $self->{'tag_regex'} ) {
+	$command = 'switch';
+	my $regex = $self->{'tag_regex'};
+	my ($tag) = grep /$regex/, @{$self->{'files'}->{'A'}};
+	$tag =~ s/^.+\/tags\/(.+)/$1/;
+	return unless $tag;
+	my $return = $self->_cd_run(
 	    $to,
-	    $svn_binary, $command,
-	    -r => $self->{revision},
+	    $svn_binary,
+	    'info',
 	);
+	if ( $return =~ m/^URL: (.+\/tags\/).+$/m ) {
+	    my $url = $1;
+	    $tag = $url.$tag;
+	}
+	push @args, $tag;
     }
+
+    print $self->_cd_run(
+	$to,
+	$svn_binary,
+	$command,
+	@args,
+    );
 }
 
 sub _cd_run {
-    my ($self, $path) = (shift, shift);
+    my ($self, $path, $binary, $command, @args) = @_;
+    my $message;
+    my $cmd ="$binary $command " . join(" ",@args);
+
     chdir ($path) or die "Couldn't CD to $path: $!";
-    (system { $_[0] } @_) == 0 or die "Running [@_] failed with $?: $!";
-}
 
-sub _ssh_run {
-    my ($self, $path) = (shift, shift);
-    eval "use Net::SSH qw(sshopen2)";
-    die "Failed to load Net::SSH: $@" if $@;
-    my $host = $self->{'ssh-host'};
-    my $user = 
-    	defined $self->{'ssh-user'} 
-    	? $self->{'ssh-user'}.'@'.$host
-	: $host;
-
-    $path =~ s/'/'"'"'/g; # quote single quotes
-    my $cmd  = "cd '$path' && " . join(" ",@_); # wrap path in single quotes
-    if ( defined $self->{'ssh-tunnel'} ) {
-	push @Net::SSH::ssh_options, 
-		"-R3690:".$self->{'ssh-tunnel'}.":3690";
+    open my $RUN, '-|', $cmd
+      or die "Running [$cmd] failed with $?: $!";
+    while (<$RUN>) {
+	$message .= $_;
     }
-    if ( defined $self->{'ssh-identity'} ) {
-	push @Net::SSH::ssh_options,
-		"-i".$self->{'ssh-identity'};
-    }
-
-    sshopen2($user, *READER, *WRITER, $cmd) || die "ssh: $!";
-
-    while (<READER>) {
-	print $_;
-    }
-
-    close(READER);
-    close(WRITER);
+    close $RUN;
+    return $message;
 }
 
 1;
@@ -99,9 +103,6 @@ Use F<svnnotify> in F<post-commit>:
   svnnotify --repos-path "$1" --revision "$2" \
    --handler Mirror --to "/path/to/www/htdocs" \
    [--svn-binary /full/path/to/svn] \
-   [[--ssh-host remote_host] [--ssh-user remote_user] \
-   [--ssh-tunnel 10.0.0.2] \
-   [--ssh-identity /home/user/.ssh/id_rsa]]
 
 or better yet, use L<SVN::Notify::Config> for a more
 sophisticated setup:
@@ -116,10 +117,6 @@ sophisticated setup:
   'some/other/path/in/repository':
     handler: Mirror
     to: "/path/to/remote/www/htdocs"
-    ssh-host: "remote_host"
-    ssh-user: "remote_user"
-    ssh-tunnel: "10.0.0.2"
-    ssh-identity: "/home/user/.ssh/id_rsa"
 
 =head1 DESCRIPTION
 
@@ -173,115 +170,9 @@ Specified which directory should be updated.
 
 =head2 Remote Mirror
 
-Used for directories not located on the same machine as the
-repository itself.  Typically, this might be a production web
-server located in a DMZ, so special consideration must be paid
-to security concerns.  In particular, the remote mirror server
-may not be able to directly access the repository box.
-
-NOTE: be sure and consult L<Remote Mirror Pre-requisites>
-before configuring your post-commit hook.
-
-=over 4
-
-=item * ssh-host
-
-This value is required and must be the hostname or IP address
-of the remote host (where the mirror directories reside).
-
-=item * ssh-user
-
-This value is optional and specifies the remote username that
-owns the working copy mirror.
-
-=item * ssh-identity
-
-This value may be optional and should be the full path to the
-local identity file being used to authenticate with the remote
-host. If you are setting the ssh-user to be something other than
-the local user name, you will typically also have to set the
-ssh-identity.
-
-=item * ssh-tunnel
-
-If the remote server does not have direct access to the repository
-server, it is possible to use the tunneling capabilities of SSH
-to provide temporary access to the repository.  This works even 
-if repository is located internally, and the remote server is 
-located outside of a firewall or on a DMZ.
-
-The value passed as the ssh-tunnel should be the IP address to
-which the local repository service is bound (whether that is
-Apache or svnserve).  This will tunnel port 3690 from the 
-repository box to localhost:3690 on the remote box.  This must
-also be the way that the original working copy was checked out.
-
-For example, see L<Remote Mirror Pre-requisites> and after step #6,
-perform the following additional steps:
-
-  # su - localuser
-  $ ssh -i .ssh/id_rsa remote_user@remote_host -R3690:10.0.0.2:3690
-  $ cd /path/to/mirror/working/copy
-  $ svn co svn://127.0.0.1/repos/path/to/files .
-
-where 10.0.0.2 is the IP address hosting the repository service.  
-Replace C<svn://> with C<http://> if you are running Apache 
-instead of svnserve.
-
-=head2 Remote Mirror Pre-requisites
-
-Before you can configure a remote mirror, you need to produce
-an SSH identity file to use:
-
-=over 4
-
-=item 1. Log in as repository user
-
-Give the user identity being used to execute the hook scripts 
-(the user running Apache or svnserve) a shell and log in as 
-that user, e.g. C<su - svn>;
-
-=item 2. Create SSH identity files on repository machine
-
-Run C<ssh-keygen> and create an identity file (without a password).
-
-=item 3. Log in as remote user
-
-Perform the same steps as #1, but this time on the remote machine.
-This username doesn't have to be the same as in step #1, but it
-must be a user with full write access to the mirror working copy.
-
-=item 4. Create SSH identity files on remote machine
-
-It is usually more efficient to go ahead and use C<ssh-keygen> to
-create the .ssh folder in the home directory of the remote user.
-
-=item 5. Copy the public key from local to remote
-
-Copy the .ssh/id_dsa.pub (or id_rsa.pub if you created an RSA key)
-to the remote server and add it to the .ssh/authorized_keys for
-the remote user.  See the SSH documentation for instructions on
-how to configure 
-
-=item 6. Confirm configuration
-
-As the repository user, confirm that you can sucessfully connect to
-the remote account, e.g.:
-
-  # su - local_user
-  $ ssh -i .ssh/id_rsa remote_user@remote_host
-
-This is actually a good time to either check out the working copy
-or to confirm that the remote account has rights to update the
-working copy mirror.  If the remote server does not have direct
-network access to the repository server, you can use the tunnel
-facility of SSH (see L<ssh-tunnel> above) to provide access (e.g.
-through a firewall).
-
-=back
-
-Once you have set up the various accounts, you are ready to set
-your options.
+Used for mirrors on some other box, e.g. a web server in a DMZ
+network.  See L<SVN::Notify::Mirror::SSH> or L<SVN::Notify::Mirror::Rsync>
+for more details.
 
 =over 4
 

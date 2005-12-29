@@ -1,3 +1,136 @@
+2005-12-28  John Peacock <jpeacock@cpan.org>
+
+	Ready to release alpha code to CPAN.
+
+	* MANIFEST
+	    Need to add new file or it doesn't get included in tar.
+
+	* README
+	    Mention Mirror::SSH in example.
+
+	* lib/SVN/Notify/Mirror/Rsync.pm
+	    Take this out until design questions are resolved.
+
+	* lib/SVN/Notify/Mirror.pm
+	    Bump $VERSION and standardize whitespace.
+
+	* t/coretests.pm
+	    Tweak $changes slightly to test empty updates, too.
+
+	* t/survey_repos
+	    First pass at improving code to autogenerate test cases.
+
+2005-12-28  John Peacock <jpeacock@cpan.org>
+
+	Finally have tests succeeding 100% (not testing Rsync yet).
+
+	* t/coretests.pm
+	    Rework test framework to only test the right things at
+	    the right time.
+
+	* t/002_config.t.PL
+	    Change test to call SVN::Notify::Mirror::SSH directly.
+
+	* lib/SVN/Notify/Mirror.pm
+	    Add compatibility for SSH call for next release.
+
+	* lib/SVN/Notify/Mirror/SSH.pm
+	* lib/SVN/Notify/Mirror/Rsync.pm
+	    Use parent module's $VERSION (to each maintainence).
+
+2005-12-27  John Peacock <jpeacock@cpan.org>
+
+	Split out the SSH and add Rsync subclasses (tests still not working).
+
+	* t/coretests.pm
+	    More tweaks to test framework but still no solution.
+
+	* lib/SVN/Notify/Mirror.pm
+	    Remove SSH code and place in seperate file.
+	    Deprecate using SSH from parent module.
+
+	* lib/SVN/Notify/Mirror/SSH.pm
+	    Completely working subclass based on code stripped from parent.
+
+	* lib/SVN/Notify/Mirror/Rsync.pm
+	    Skeleton subclass (not tested at all).
+	    Suggested by Guillaume Rousse <Guillaume.Rousse@inria.fr>
+
+2005-12-27  John Peacock <jpeacock@cpan.org>
+
+	Tests 001_basic.t and 003_sshtest.t pass 100% but 002_config.t
+	fails due to out-of-order evaluation.
+
+	* lib/SVN/Notify/Mirror.pm
+	    Simplify non-switch path.
+	    Chop URL from wc and source on /tags/ then stitch together.
+	    Echo the command run in the error case.
+
+	* t/coretests.pm
+	    Working test framework to loop over each WC in turn.
+	    _compare_directories() stubbed out for now.
+
+2005-12-26  John Peacock <jpeacock@cpan.org>
+
+	Interim commit (tests still fail).
+
+	* t/coretests.pm
+	    Add wc_map to try and make it easier to keep track of
+	    what wc contains what path.
+
+	* t/test-repos.dump
+	    Actually didn't save the correct dumpfile last time.
+
+2005-12-26  John Peacock <jpeacock@cpan.org>
+
+	Complexify the testing regime to handle realworld repositories
+	with multiple projects.  Testing does not work yet.
+
+	* t/recreate
+	  t/survey_repos
+	    Private scripts to recreate the repository and to survey
+	    the repository structure and create the appropriate test
+	    structure within coretests.pm.
+
+	* t/coretests.pm
+	    Partially updated with new repository structure (tests fail).
+
+	* t/test-repos.dump
+	    New repository dump (not really related to previous dump).
+
+2005-12-24  John Peacock <jpeacock@cpan.org>
+
+	Completely working switch feature.
+
+	* lib/SVN/Notify/Mirror.pm
+	    Modularize _cd_run and _ssh_run to work exactly the same way.
+	    Run `svn info` on target directory to get URL.
+
+	* t/002_config.t.PL
+	    Add 'tags/' target to both local and SSH configfile.
+
+2005-12-23  John Peacock <jpeacock@cpan.org>
+
+	Working switch case for tags, but only on local dir.
+
+	* MANIFEST
+	    Need to have Makefile.PL so `release` doesn't get confused
+
+	* lib/SVN/Notify/Mirror.pm
+	    Rename all internal attributes to use underscore (as this is
+	      what YAML does anyways.
+	    Add 'switch' case for tags.
+
+	* t/002_config.t.PL
+	    Add stanza for 'tags/' path.
+
+	* t/coretests.pm
+	    Add new wc-tag directory.
+	    Add tests for switch case in tags.
+
+	* t/test-repos.dump
+	    Append two tags to repos dump.
+
 2005-12-02  John Peacock <jpeacock@cpan.org>
 
 	Need compatibility Makefile.PL so release works

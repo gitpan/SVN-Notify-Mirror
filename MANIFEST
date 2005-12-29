@@ -4,7 +4,9 @@ README
 Todo
 Changes
 lib/SVN/Notify/Mirror.pm
+lib/SVN/Notify/Mirror/SSH.pm
 Build.PL
+Makefile.PL
 META.yml
 t/001_basic.t
 t/002_config.t.PL

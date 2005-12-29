@@ -13,24 +13,33 @@ print {$FILE} <<"EOF";
 --- #YAML:1.0
 '':
   PATH: "/usr/bin:/usr/local/bin"
-'/branches/branch1':
+'/project1/branches/branch1':
   handler: Mirror
   to: "$PWD/t/wc-branch/"
 EOF
 
 if ( $mb->feature('ssh_support') and $mb->notes('sshtests') ) {
     print {$FILE} <<"EOF";
-'/trunk':
-  handler: Mirror
+'/project1/trunk':
+  handler: Mirror::SSH
   to: "$PWD/t/wc-trunk/"
+  ssh-host: localhost
+'/project1/tags':
+  handler: Mirror::SSH
+  to: "$PWD/t/wc-tag/"
+  tag-regex: 'TRUNK'
   ssh-host: localhost
 EOF
 }
 else {
     print {$FILE} <<"EOF";
-'/trunk':
+'/project1/trunk':
   handler: Mirror
   to: "$PWD/t/wc-trunk/"
+'/project1/tags':
+  handler: Mirror
+  to: "$PWD/t/wc-tag/"
+  tag-regex: 'TRUNK'
 EOF
 }
 close $FILE;
