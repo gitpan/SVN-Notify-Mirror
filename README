@@ -11,6 +11,7 @@ DESCRIPTION
     	- support for multiple transport backends( SSH and Rsync)
 	- support for switching to a newly created tag (instead of
 	  just updating a working copy)
+	- more complete testing framework
 
     NOTE: Please use SVN::Notify::Mirror::SSH directly for all new
     installs.  The compatibility feature to pass through ssh-* options
@@ -26,10 +27,10 @@ INSTALLATION
 
 
 TESTING
-    If you have the optional Net::SSH module installed, you can test it if
-    you have the following configured:
+    If you have the optional Net::SSH module installed, you can test the
+    SVN::Notify::Mirror::SSH subclass if you have the following configured:
 
-    1) a personal ssh key (located in the default ~.ssh location);
+    1) a personal ssh key (located in the default ~/.ssh location);
     2) your key does not have a password;
     3) you have already used that key to connect successfully to localhost.
 
