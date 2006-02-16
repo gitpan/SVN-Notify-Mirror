@@ -7,7 +7,10 @@ DESCRIPTION
     made to the repository. This directory can either be on the same box as
     the repository itself, or it can be remote.
 
-    NEW in this version is:
+    NEW in version 0.4 is:
+        - bugfix so tests operate correctly with older Subversion clients
+
+    NEW in version 0.3 is:
     	- support for multiple transport backends( SSH and Rsync)
 	- support for switching to a newly created tag (instead of
 	  just updating a working copy)

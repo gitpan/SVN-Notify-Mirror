@@ -83,8 +83,10 @@ sub reset_test_wcs {
 	my $rev = $wc_map->{$wc}->{'base_rev'};
 	my $command = $wc_map->{$wc}->{'command'};
 
-	my $cmd = "svn $command -q -r$rev ".
-	    "file://$repos_path/$path $PWD/t/$wc";
+	my $cmd = "svn $command -q -r$rev ";
+	$cmd .= "file://$repos_path/$path " 
+	   if ( $command =~ /switch/ ); # accomodate older svn's
+	$cmd .= "$PWD/t/$wc";
 	system($cmd) == 0 or die "system failed: $?";
     }
 }

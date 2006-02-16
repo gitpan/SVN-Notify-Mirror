@@ -1,3 +1,8 @@
+2006-02-16  John Peacock <jpeacock@cpan.org>
+
+	Older Subversion clients choke if you give them the repos path when they
+	weren't expecting it (go figure).
+
 2006-01-03  John Peacock <jpeacock@cpan.org>
 
 	Release 0.03 to CPAN.

@@ -5,7 +5,7 @@ use strict;
 
 BEGIN {
     use vars qw ($VERSION @ISA);
-    $VERSION     = 0.03;
+    $VERSION     = 0.031;
     @ISA         = qw (SVN::Notify);
 }
 
