@@ -5,7 +5,7 @@ use strict;
 
 BEGIN {
     use vars qw ($VERSION @ISA);
-    $VERSION     = 0.031;
+    $VERSION     = 0.032;
     @ISA         = qw (SVN::Notify);
 }
 
@@ -28,7 +28,16 @@ sub execute {
     my ($self) = @_;
     my $to = $self->{to} or return;
     my $repos = $self->{repos_path} or return;
-    my $svn_binary = $self->{'svn_binary'} || '/usr/local/bin/svn';
+    my $svn_binary = defined $self->{'svn_binary'} 
+    	? $self->{'svn_binary'} 
+	: defined $ENV{SVN}
+	? $ENV{SVN} 
+	: -e "/usr/local/bin/svn" # default self-compiled
+	? '/usr/local/bin/svn'
+	: -e "/usr/bin/svn"       # default distro/RPM
+	? '/usr/bin/svn'
+	: 'svn';                  # hope it's in the path
+
     my $command = 'update';
     my @args = (
 	-r => $self->{revision},
@@ -251,6 +260,34 @@ where C<TRUNK-0_0_1> is the name of any path in the C<.../tags/>
 folder.
 
 =back
+
+=head1 PREREQUISITES (Optional and otherwise)
+
+The only mandatory prerequisite is SVN::Notify (obviously), but the
+presence of several other modules will enable other features:
+
+=over 4
+
+=item SVN::Notify::Config
+
+Permits a YAML config file to be used as the entire postcommit script, like
+the second example in the L<SYNOPSIS> above.
+
+=item Net::SSH
+
+Required to use SSH to update a remote working copy.  See
+L<SVN::Notify::Mirror::SSH> for usage of that transport method.
+
+=item File::Rsync
+
+Required to use rsync to update a remote working copy  See
+L<SVN::Notify::Mirror::RSync> for usage of that transport method..
+
+=back
+
+If you install any of these modules after installing SVN::Notify::Mirror,
+those features will be available immediately (though you can rerun the
+install in order to see the tests).
 
 =head1 AUTHOR
 

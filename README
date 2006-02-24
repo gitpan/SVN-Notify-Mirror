@@ -7,8 +7,9 @@ DESCRIPTION
     made to the repository. This directory can either be on the same box as
     the repository itself, or it can be remote.
 
-    NEW in version 0.4 is:
+    NEW in version 0.32 is:
         - bugfix so tests operate correctly with older Subversion clients
+	- don't hardcode path to svn executable
 
     NEW in version 0.3 is:
     	- support for multiple transport backends( SSH and Rsync)
@@ -28,6 +29,25 @@ INSTALLATION
     $ su
     # ./Build install
 
+PREREQUISITES (Optional and otherwise)
+    The only mandatory prerequisite is SVN::Notify (obviously), but the
+    presence of several other modules will enable other features:
+
+    SVN::Notify::Config
+        Permits a YAML config file to be used as the entire postcommit
+        script, like the second example in the SYNOPSIS above.
+
+    Net::SSH
+        Required to use SSH to update a remote working copy.  See
+        SVN::Notify::Mirror::SSH for usage of that transport method.
+
+    File::Rsync
+        Required to use rsync to update a remote working copy  See
+        SVN::Notify::Mirror::RSync for usage of that transport method..
+
+        If you install any of these modules after installing
+        SVN::Notify::Mirror, those features will be available immediately
+        (though you can rerun the install in order to see the tests).
 
 TESTING
     If you have the optional Net::SSH module installed, you can test the
