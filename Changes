@@ -1,10 +1,16 @@
 2006-02-24  John Peacock <jpeacock@cpan.org>
 
+	* Build.PL
+	    Depend on the newly minted SVN::Notify-2.53.
+
+	* lib/SVN/Notify/Mirror.pm
+	    Use SVN::Notify->find_exe() to locate the 'svn' binary.
+
+2006-02-24  John Peacock <jpeacock@cpan.org>
+
 	Further improvements in making sure that the svn_binary is found.
 
 2006-02-17  John Peacock <jpeacock@cpan.org>
-
-	Release 0.04 to CPAN.
 
 	* Build.PL
 	    Add explicit dependency on SVN::Notify. Duh.

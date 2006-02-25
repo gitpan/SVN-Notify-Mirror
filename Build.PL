@@ -18,7 +18,7 @@ my $mb = $class->new
       license         => 'perl',
       requires        => {
 	  'Module::Build' => 0.2611,
-	  'SVN::Notify'   => 2.50,
+	  'SVN::Notify'   => 2.53,
       },
       auto_features   => {
 	  ssh_support => { 

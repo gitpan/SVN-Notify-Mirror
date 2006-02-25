@@ -5,7 +5,7 @@ use strict;
 
 BEGIN {
     use vars qw ($VERSION @ISA);
-    $VERSION     = 0.032;
+    $VERSION     = 0.033;
     @ISA         = qw (SVN::Notify);
 }
 
@@ -26,17 +26,8 @@ sub prepare {
 
 sub execute {
     my ($self) = @_;
-    my $to = $self->{to} or return;
-    my $repos = $self->{repos_path} or return;
-    my $svn_binary = defined $self->{'svn_binary'} 
-    	? $self->{'svn_binary'} 
-	: defined $ENV{SVN}
-	? $ENV{SVN} 
-	: -e "/usr/local/bin/svn" # default self-compiled
-	? '/usr/local/bin/svn'
-	: -e "/usr/bin/svn"       # default distro/RPM
-	? '/usr/bin/svn'
-	: 'svn';                  # hope it's in the path
+    return unless defined $self->{to};
+    $self->{svn_binary} ||= $ENV{SVN}  || SVN::Notify->find_exe('svn');
 
     my $command = 'update';
     my @args = (
@@ -61,8 +52,8 @@ sub execute {
 	$tag =~ s/^.+\/tags\/(.+)/$1/;
 	return unless $tag;
 	my $return = $self->_cd_run(
-	    $to,
-	    $svn_binary,
+	    $self->{to},
+	    $self->{svn_binary},
 	    'info',
 	);
 	if ( $return =~ m/^URL: (.+\/tags\/).+$/m ) {
@@ -73,8 +64,8 @@ sub execute {
     }
 
     print $self->_cd_run(
-	$to,
-	$svn_binary,
+	$self->{to},
+	$self->{svn_binary},
 	$command,
 	@args,
     );
