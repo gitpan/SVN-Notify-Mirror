@@ -1,13 +1,11 @@
 #!/usr/bin/perl -w
 
 package SVN::Notify::Mirror;
+use base qw/SVN::Notify/;
 use strict;
 
-BEGIN {
-    use vars qw ($VERSION @ISA);
-    $VERSION     = 0.033;
-    @ISA         = qw (SVN::Notify);
-}
+use vars qw ($VERSION);
+$VERSION = 0.034;
 
 __PACKAGE__->register_attributes(
     'ssh_host'     => 'ssh-host=s',
@@ -26,17 +24,22 @@ sub prepare {
 
 sub execute {
     my ($self) = @_;
-    return unless defined $self->{to};
-    $self->{svn_binary} ||= $ENV{SVN}  || SVN::Notify->find_exe('svn');
+    return unless defined $self->to;
+    $self->svn_binary( $ENV{SVN} || SVN::Notify->find_exe('svn') )
+    	unless $self->svn_binary;
+    my $to = $self->to;
+    if ( ref($to) eq 'ARRAY' ) {
+	$to = $to->[0]; # we can't use SVN::Notify 2.61+ interface yet
+    }
 
     my $command = 'update';
     my @args = (
-	-r => $self->{revision},
+	-r => $self->revision,
     );  	
 
     # need to swap function calls for backwards compatibility for now
-    if ( defined $self->{'ssh_host'} 
-    	 and not ref($self) eq 'SVN::Notify::Mirror::SSH') # ugly
+    if ( defined $self->ssh_host 
+    	 and not $self->isa('SVN::Notify::Mirror::SSH') )
     {	
 	no warnings 'redefine';
 	warn "Deprecated - please use SVN::Notify::Mirror::SSH directly";
@@ -45,15 +48,15 @@ sub execute {
     }
 
     # deal with the possible switch case
-    if ( defined $self->{'tag_regex'} ) {
+    if ( defined $self->tag_regex ) {
 	$command = 'switch';
-	my $regex = $self->{'tag_regex'};
+	my $regex = $self->tag_regex;
 	my ($tag) = grep /$regex/, @{$self->{'files'}->{'A'}};
 	$tag =~ s/^.+\/tags\/(.+)/$1/;
 	return unless $tag;
 	my $return = $self->_cd_run(
-	    $self->{to},
-	    $self->{svn_binary},
+	    $to,
+	    $self->svn_binary,
 	    'info',
 	);
 	if ( $return =~ m/^URL: (.+\/tags\/).+$/m ) {
@@ -64,8 +67,8 @@ sub execute {
     }
 
     print $self->_cd_run(
-	$self->{to},
-	$self->{svn_binary},
+	$to,
+	$self->svn_binary,
 	$command,
 	@args,
     );

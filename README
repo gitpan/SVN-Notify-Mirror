@@ -7,19 +7,17 @@ DESCRIPTION
     made to the repository. This directory can either be on the same box as
     the repository itself, or it can be remote.
 
-    NEW in version 0.32 is:
+    NEW in version 0.033 is:
+	- API change in SVN::Notify 0.62
+	- Requires SVN::Notify::Config >= 0.7 (same reason)
+
+    NEW in version 0.032 is:
         - bugfix so tests operate correctly with older Subversion clients
 	- don't hardcode path to svn executable
 
-    NEW in version 0.3 is:
-    	- support for multiple transport backends( SSH and Rsync)
-	- support for switching to a newly created tag (instead of
-	  just updating a working copy)
-	- more complete testing framework
-
     NOTE: Please use SVN::Notify::Mirror::SSH directly for all new
     installs.  The compatibility feature to pass through ssh-* options
-    will be removed in version 0.05.  See the POD for more details.
+    will be removed in version 0.050.  See the POD for more details.
 
 INSTALLATION
     Install Module::Build and then run:
@@ -35,7 +33,7 @@ PREREQUISITES (Optional and otherwise)
 
     SVN::Notify::Config
         Permits a YAML config file to be used as the entire postcommit
-        script, like the second example in the SYNOPSIS above.
+        script, like the second example in the SYNOPSIS.
 
     Net::SSH
         Required to use SSH to update a remote working copy.  See

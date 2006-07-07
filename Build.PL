@@ -27,7 +27,7 @@ my $mb = $class->new
 	  },
 	  config_support => {
 	      description => "Use compact YAML script",
-	      requires    => {SVN::Notify::Config => 0.06}
+	      requires    => {SVN::Notify::Config => 0.07}
 	  },
 	  rsync_support => {
 	      description => "Transfer files with rsync",
@@ -41,7 +41,7 @@ my $mb = $class->new
 	  't/004_rsynctest.t.PL' => 't/004_rsynctest.t',
       },
       add_to_cleanup =>
-	  ['t/test-repos', 't/wc-*'],
+	  ['t/test-repos', 't/wc-*', 't/00[2-4]*.t'],
     );
 
 if ( $mb->feature('ssh_support') ) {

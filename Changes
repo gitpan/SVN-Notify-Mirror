@@ -1,3 +1,17 @@
+2006-07-06  John Peacock <jpeacock@cpan.org>
+
+	Ready to release to CPAN (now that SVN-Notify-Config is fixed).
+
+2006-06-30  John Peacock <jpeacock@cpan.org>
+
+	This should be working but is having some problems
+
+2006-06-29  John Peacock <jpeacock@cpan.org>
+
+	Quick release to cope with backwards incompatible API changes in
+	SVN::Notify 2.61.  Don't release until POD is rewritten and I hear from
+	Audrey Tang about SVN::Notify::Config fixes (to add to README).
+
 2006-02-24  John Peacock <jpeacock@cpan.org>
 
 	* Build.PL
