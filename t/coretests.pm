@@ -51,13 +51,20 @@ sub reset_all_tests {
 
 # Create a repository fill it with sample values the first time through
 sub create_test_repos {
+    require SVN::Notify;
+    my $svnadmin = $ENV{SVNADMIN} || SVN::Notify->find_exe('svnadmin');
+    die (<<"") unless defined($svnadmin);
+Can't locate svnadmin binary!
+Start test files with e.g.:
+  \$ SVNADMIN=/path/to/svnadmin ./Build test
+
     unless ( -d $repos_path ) {
 
 	system(<<"") == 0 or die "system failed: $?";
-svnadmin create $repos_path
+$svnadmin create $repos_path
 
 	system(<<"") == 0 or die "system failed: $?";
-svnadmin load --quiet $repos_path < ${repos_path}.dump
+$svnadmin load --quiet $repos_path < ${repos_path}.dump
 
     }
 }

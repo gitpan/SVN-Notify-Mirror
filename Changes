@@ -1,3 +1,15 @@
+2006-10-31  John Peacock <jpeacock@cpan.org>
+
+	Add MANIFEST.SKIP so that release script is happy
+
+2006-10-31  John Peacock <jpeacock@cpan.org>
+
+	ENV overrides find_exev() call
+
+2006-10-31  John Peacock <jpeacock@cpan.org>
+
+	Don't rely on svnadmin being in the path for testing.
+
 2006-07-06  John Peacock <jpeacock@cpan.org>
 
 	Ready to release to CPAN (now that SVN-Notify-Config is fixed).
