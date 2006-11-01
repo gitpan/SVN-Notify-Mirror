@@ -1,6 +1,6 @@
 ---
 name: SVN-Notify-Mirror
-version: 0.03401
+version: 0.03402
 author:
   - 'John Peacock <jpeacock@cpan.org>'
 abstract: Keep a mirrored working copy of a repository path
@@ -13,7 +13,7 @@ requires:
 provides:
   SVN::Notify::Mirror:
     file: lib/SVN/Notify/Mirror.pm
-    version: 0.03401
+    version: 0.03402
   SVN::Notify::Mirror::Rsync:
     file: lib/SVN/Notify/Mirror/Rsync.pm
     version: ~

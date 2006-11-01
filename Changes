@@ -1,3 +1,7 @@
+2006-11-01  John Peacock <jpeacock@cpan.org>
+
+	More robustness in tests
+
 2006-10-31  John Peacock <jpeacock@cpan.org>
 
 	Add MANIFEST.SKIP so that release script is happy
