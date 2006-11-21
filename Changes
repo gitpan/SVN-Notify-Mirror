@@ -1,298 +1,77 @@
-2006-11-01  John Peacock <jpeacock@cpan.org>
+[Changes for 0.3403 - 2006-11-21]
 
-	More robustness in tests
+* Use lessons learned from testing SVN::Notify::Config about external
+  binaries.  No actual code changes, just test tweaks.
 
-2006-10-31  John Peacock <jpeacock@cpan.org>
+[Changes for 0.03402 - 2006-11-01]
 
-	Add MANIFEST.SKIP so that release script is happy
+* More robustness in tests.
 
-2006-10-31  John Peacock <jpeacock@cpan.org>
+* Don't rely on svnadmin being in the path for testing.
 
-	ENV overrides find_exev() call
+[Changes for 0.034 - 2006-07-07]
 
-2006-10-31  John Peacock <jpeacock@cpan.org>
+* Quick release to cope with backwards incompatible API changes in
+  SVN::Notify 2.61.
 
-	Don't rely on svnadmin being in the path for testing.
+* Depends on SVN-Notify-Config that is fixed for above as well.
 
-2006-07-06  John Peacock <jpeacock@cpan.org>
+[Changes for 0.033 - 2006-02-25]
 
-	Ready to release to CPAN (now that SVN-Notify-Config is fixed).
+* Depend on the newly minted SVN::Notify-2.53.
 
-2006-06-30  John Peacock <jpeacock@cpan.org>
+* Use SVN::Notify->find_exe() to locate the 'svn' binary.
 
-	This should be working but is having some problems
+[Changes for 0.032 - 2006-02-24]
 
-2006-06-29  John Peacock <jpeacock@cpan.org>
+* Further improvements in making sure that the svn_binary is found.
 
-	Quick release to cope with backwards incompatible API changes in
-	SVN::Notify 2.61.  Don't release until POD is rewritten and I hear from
-	Audrey Tang about SVN::Notify::Config fixes (to add to README).
+* Add explicit dependency on SVN::Notify.  Duh.
 
-2006-02-24  John Peacock <jpeacock@cpan.org>
+* Improve documentation of optional features.
 
-	* Build.PL
-	    Depend on the newly minted SVN::Notify-2.53.
+* Don't hardcode path to svn executable.
 
-	* lib/SVN/Notify/Mirror.pm
-	    Use SVN::Notify->find_exe() to locate the 'svn' binary.
+[Changes for 0.031 - 2006-02-16]
 
-2006-02-24  John Peacock <jpeacock@cpan.org>
+* Older Subversion clients choke if you give them the repos path when 
+  they weren't expecting it (go figure).
 
-	Further improvements in making sure that the svn_binary is found.
+[Changes for 0.03 - 2006-01-03]
 
-2006-02-17  John Peacock <jpeacock@cpan.org>
+* Non-alpha release to CPAN of working Rsync and SSH subclasses.
 
-	* Build.PL
-	    Add explicit dependency on SVN::Notify. Duh.
+[Changes for 0.02_09 - 2005-12-29]
 
-	* README
-	  lib/SVN/Notify/Mirror.pm
-	    Improve documentation of optional features.
+* Re-add Rsync.pm and tests for same.
 
-2006-02-17  John Peacock <jpeacock@cpan.org>
+[Changes for 0.02_07 - 2005-12-29]
 
-	Don't hardcode path to svn executable.
+* Take Rsync.pm out until design questions are resolved.
 
-2006-02-16  John Peacock <jpeacock@cpan.org>
+* Split out the SSH and add Rsync subclasses.
 
-	Older Subversion clients choke if you give them the repos path when they
-	weren't expecting it (go figure).
+* Complexify the testing regime to handle realworld repositories
+  with multiple projects.
 
-2006-01-03  John Peacock <jpeacock@cpan.org>
+* Rename all internal attributes to use underscore (as this is
+  what YAML does anyways).
 
-	Release 0.03 to CPAN.
+* Working switch case for tags.
 
-	* README
-	    Clarify a few points.
+[Changes for 0.02 - 2005-12-03]
 
-	* lib/SVN/Notify/Mirror.pm
-	    Bump the $VERSION.
+* Implement support for remote mirrors via SSH.
+* Structure to permit intelligent testing.
+* Replace underbar with hyphens in all parameters.
+* Remove dynamically created files from repository.
+* Add dynamic creation of Changes from repos log.
+* Add tests to compare files at each rev.
 
-2005-12-29  John Peacock <jpeacock@cpan.org>
 
-	One last file to add.
+[Changes for 0.01 - 2005-09-11]
 
-	* lib/SVN/Notify/Mirror/Rsync.pm
-	    Forgot to add this back to the repository in its current form.
+For some reason, I never added this to the repository before
+releasing to CPAN.  I'm not even sure where I did this
+development now... ;-)
 
-2005-12-29  John Peacock <jpeacock@cpan.org>
-
-	Nearly forgot to add files to the MANIFEST.
-
-	* MANIFEST
-	    Add Rsync.pm and tests for same.
-
-2005-12-29  John Peacock <jpeacock@cpan.org>
-
-	* Build.PL
-	    Add support structure for Rsync class.
-
-	* README
-	    Simplify and discuss features that have changed.
-
-	* lib/SVN/Notify/Mirror.pm
-	    Update $VERSION.  Add POD describing tag-regex option.
-
-	* t/coretests.pm
-	    Replicate wc_map structure for Rsync tests.
-
-	* t/004_rsynctest.t.PL
-	    New test for Rsync transport method.
-
-2005-12-28  John Peacock <jpeacock@cpan.org>
-
-	Ready to release alpha code to CPAN.
-
-	* MANIFEST
-	    Need to add new file or it doesn't get included in tar.
-
-	* README
-	    Mention Mirror::SSH in example.
-
-	* lib/SVN/Notify/Mirror/Rsync.pm
-	    Take this out until design questions are resolved.
-
-	* lib/SVN/Notify/Mirror.pm
-	    Bump $VERSION and standardize whitespace.
-
-	* t/coretests.pm
-	    Tweak $changes slightly to test empty updates, too.
-
-	* t/survey_repos
-	    First pass at improving code to autogenerate test cases.
-
-2005-12-28  John Peacock <jpeacock@cpan.org>
-
-	Finally have tests succeeding 100% (not testing Rsync yet).
-
-	* t/coretests.pm
-	    Rework test framework to only test the right things at
-	    the right time.
-
-	* t/002_config.t.PL
-	    Change test to call SVN::Notify::Mirror::SSH directly.
-
-	* lib/SVN/Notify/Mirror.pm
-	    Add compatibility for SSH call for next release.
-
-	* lib/SVN/Notify/Mirror/SSH.pm
-	* lib/SVN/Notify/Mirror/Rsync.pm
-	    Use parent module's $VERSION (to each maintainence).
-
-2005-12-27  John Peacock <jpeacock@cpan.org>
-
-	Split out the SSH and add Rsync subclasses (tests still not working).
-
-	* t/coretests.pm
-	    More tweaks to test framework but still no solution.
-
-	* lib/SVN/Notify/Mirror.pm
-	    Remove SSH code and place in seperate file.
-	    Deprecate using SSH from parent module.
-
-	* lib/SVN/Notify/Mirror/SSH.pm
-	    Completely working subclass based on code stripped from parent.
-
-	* lib/SVN/Notify/Mirror/Rsync.pm
-	    Skeleton subclass (not tested at all).
-	    Suggested by Guillaume Rousse <Guillaume.Rousse@inria.fr>
-
-2005-12-27  John Peacock <jpeacock@cpan.org>
-
-	Tests 001_basic.t and 003_sshtest.t pass 100% but 002_config.t
-	fails due to out-of-order evaluation.
-
-	* lib/SVN/Notify/Mirror.pm
-	    Simplify non-switch path.
-	    Chop URL from wc and source on /tags/ then stitch together.
-	    Echo the command run in the error case.
-
-	* t/coretests.pm
-	    Working test framework to loop over each WC in turn.
-	    _compare_directories() stubbed out for now.
-
-2005-12-26  John Peacock <jpeacock@cpan.org>
-
-	Interim commit (tests still fail).
-
-	* t/coretests.pm
-	    Add wc_map to try and make it easier to keep track of
-	    what wc contains what path.
-
-	* t/test-repos.dump
-	    Actually didn't save the correct dumpfile last time.
-
-2005-12-26  John Peacock <jpeacock@cpan.org>
-
-	Complexify the testing regime to handle realworld repositories
-	with multiple projects.  Testing does not work yet.
-
-	* t/recreate
-	  t/survey_repos
-	    Private scripts to recreate the repository and to survey
-	    the repository structure and create the appropriate test
-	    structure within coretests.pm.
-
-	* t/coretests.pm
-	    Partially updated with new repository structure (tests fail).
-
-	* t/test-repos.dump
-	    New repository dump (not really related to previous dump).
-
-2005-12-24  John Peacock <jpeacock@cpan.org>
-
-	Completely working switch feature.
-
-	* lib/SVN/Notify/Mirror.pm
-	    Modularize _cd_run and _ssh_run to work exactly the same way.
-	    Run `svn info` on target directory to get URL.
-
-	* t/002_config.t.PL
-	    Add 'tags/' target to both local and SSH configfile.
-
-2005-12-23  John Peacock <jpeacock@cpan.org>
-
-	Working switch case for tags, but only on local dir.
-
-	* MANIFEST
-	    Need to have Makefile.PL so `release` doesn't get confused
-
-	* lib/SVN/Notify/Mirror.pm
-	    Rename all internal attributes to use underscore (as this is
-	      what YAML does anyways.
-	    Add 'switch' case for tags.
-
-	* t/002_config.t.PL
-	    Add stanza for 'tags/' path.
-
-	* t/coretests.pm
-	    Add new wc-tag directory.
-	    Add tests for switch case in tags.
-
-	* t/test-repos.dump
-	    Append two tags to repos dump.
-
-2005-12-02  John Peacock <jpeacock@cpan.org>
-
-	Need compatibility Makefile.PL so release works
-
-2005-12-02  John Peacock <jpeacock@cpan.org>
-
-	Final changes for 0.02 release
-
-2005-11-23  John Peacock <jpeacock@cpan.org>
-
-	Remove dynamically created files from repository.
-	Add dynamic creation of Changes from repos log.
-	Add tests to compare files at each rev.
-	Ready for next CPAN beta release.
-
-2005-11-22  John Peacock <jpeacock@cpan.org>
-
-	All three testfiles working (though not optimal)
-
-2005-11-20  John Peacock <jpeacock@cpan.org>
-
-	Working 001 and 003 tests.  002 test does something, but
-	need more robust way to check it.
-
-2005-11-20  John Peacock <jpeacock@cpan.org>
-
-	Fix stupid global replace errors.
-
-2005-11-20  John Peacock <jpeacock@cpan.org>
-
-	Always run the basic test without extracting files
-
-2005-11-20  John Peacock <jpeacock@cpan.org>
-
-	First cut at adding tests
-
-2005-11-20  John Peacock <jpeacock@cpan.org>
-
-	Replace underbar with hyphens in all parameters
-
-2005-11-17  John Peacock <jpeacock@cpan.org>
-
-	Structure to permit intelligent testing
-
-2005-11-16  John Peacock <jpeacock@cpan.org>
-
-	 r434@dsl092-168-024:  jpeacock | 2005-11-15 10:41:18 -0500
-	 Prepare to add SSH support.
-	 r435@dsl092-168-024:  jpeacock | 2005-11-16 16:49:43 -0500
-	 Implement support for remote mirrors via ssh
-
-2005-09-11  John Peacock <jpeacock@cpan.org>
-
-	For some reason, I never added this to the repository before
-	releasing to CPAN.  I'm not even sure where I did this
-	development now... ;-)
-
-2005-09-11  John Peacock <jpeacock@cpan.org>
-
-	Directory for svk import.
-
-;; Local Variables:
-;; coding: utf-8
-;; End:

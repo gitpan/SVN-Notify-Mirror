@@ -1,8 +1,33 @@
 #!/usr/bin/perl 
-use Test::More qw(no_plan);
+use Test::More;
 #use Data::Dumper;
+use SVN::Notify;
 use Cwd;
+use Config;
+my $SECURE_PERL_PATH = $Config{perlpath};
+if ($^O ne 'VMS') {
+    $SECURE_PERL_PATH.= $Config{_exe}
+	unless $SECURE_PERL_PATH =~ m/$Config{_exe}$/i;
+}
 my $PWD = getcwd;
+my $USER = $ENV{USER};
+my $SVNLOOK  = $ENV{SVNLOOK}  || SVN::Notify->find_exe('svnlook');
+my $SVNADMIN = $ENV{SVNADMIN} || SVN::Notify->find_exe('svnadmin');
+
+if ( !defined($SVNLOOK) ) {
+    plan skip_all => "Cannot find svnlook!\n".
+    "Please start the tests like this:\n".
+    "  SVNLOOK=/path/to/svnlook make test";
+}
+elsif ( !defined($SVNADMIN) ) {
+    plan skip_all => "Cannot find svnadmin!\n".
+    "Please start the tests like this:\n".
+    "  SVNADMIN=/path/to/svnadmin make test";
+}
+else {
+    plan no_plan;
+}
+
 my $repos_path = "$PWD/t/test-repos";
 
 my $wc_map = {
@@ -51,20 +76,12 @@ sub reset_all_tests {
 
 # Create a repository fill it with sample values the first time through
 sub create_test_repos {
-    require SVN::Notify;
-    my $svnadmin = $ENV{SVNADMIN} || SVN::Notify->find_exe('svnadmin');
-    die (<<"") unless defined($svnadmin);
-Can't locate svnadmin binary!
-Start test files with e.g.:
-  \$ SVNADMIN=/path/to/svnadmin ./Build test
-
     unless ( -d $repos_path ) {
+	system(<<"") == 0 or die "system failed: $?";
+$SVNADMIN create $repos_path
 
 	system(<<"") == 0 or die "system failed: $?";
-$svnadmin create $repos_path
-
-	system(<<"") == 0 or die "system failed: $?";
-$svnadmin load --quiet $repos_path < ${repos_path}.dump
+$SVNADMIN load --quiet $repos_path < ${repos_path}.dump
 
     }
 }

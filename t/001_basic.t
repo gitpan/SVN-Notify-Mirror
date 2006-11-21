@@ -1,10 +1,13 @@
 #!/usr/bin/perl 
 require SVN::Notify;
+use Test::More;
 require "t/coretests.pm";
 
-my $SVNNOTIFY = $ENV{'SVNNOTIFY'} || SVN::Notify->find_exe('svnnotify');
+SKIP: {
+    my $SVNNOTIFY = $ENV{'SVNNOTIFY'} || SVN::Notify->find_exe('svnnotify');
+    skip "Cannot locate svnnotify binary!", 27
+    	unless defined($SVNNOTIFY);
 
-BAIL_OUT("Cannot locate svnnotify binary!") unless defined($SVNNOTIFY);
-
-reset_all_tests();
-run_tests($SVNNOTIFY);
+    reset_all_tests();
+    run_tests($SVNNOTIFY);
+}

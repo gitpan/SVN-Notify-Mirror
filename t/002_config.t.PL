@@ -12,7 +12,7 @@ print {$FILE} <<"EOF";
 #!/usr/bin/perl -MSVN::Notify::Config=\$0
 --- #YAML:1.0
 '':
-  PATH: "/usr/bin:/usr/local/bin"
+  PATH: "/usr/local/bin:/usr/bin"
 '/project1/branches/branch1':
   handler: Mirror
   to: "$PWD/t/wc-branch/"

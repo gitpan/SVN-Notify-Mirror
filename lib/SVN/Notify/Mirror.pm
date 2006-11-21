@@ -5,7 +5,7 @@ use base qw/SVN::Notify/;
 use strict;
 
 use vars qw ($VERSION);
-$VERSION = 0.03402;
+$VERSION = 0.03403;
 
 __PACKAGE__->register_attributes(
     'ssh_host'     => 'ssh-host=s',

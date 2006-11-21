@@ -1,0 +1,41 @@
+This file contains message digests of all files listed in MANIFEST,
+signed via the Module::Signature module, version 0.54.
+
+To verify the content in this distribution, first make sure you have
+Module::Signature installed, then type:
+
+    % cpansign -v
+
+It will check each file's integrity, as well as the signature's
+validity.  If "==> Signature verified OK! <==" is not displayed,
+the distribution may already have been compromised, and you should
+not run its Makefile.PL or Build.PL.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+SHA1 51062b588a2e4cbffb396cfa4fc2de2dcec84eed Build.PL
+SHA1 19fe9ae175a727883c322331b01cd2d38051ba50 Changes
+SHA1 f235ba4160673bcb7c9d58c2f09dbc7fc0efadea LICENSE
+SHA1 e1ef6116bcff3b65e84c986fae929d458382b805 MANIFEST
+SHA1 7281666fe4dbb3f1cccd4d64a3a56930c8b3ab29 MANIFEST.SKIP
+SHA1 603352927b05c906e9c59ade3f01e798140a7f1d META.yml
+SHA1 e86245b6a930636e230cc7607c02cdabe7d1e2fc Makefile.PL
+SHA1 4ba2649d0100ad5de67fab601d7300c2feed8ad6 README
+SHA1 7e5e3601384ff724512e4eec5540f4e1577a850d Todo
+SHA1 1ee51727fc2f0a0ba458d3245db562266f916ce3 lib/SVN/Notify/Mirror.pm
+SHA1 6ff39afe8bf7932b6d99da186be1d9eee2520c64 lib/SVN/Notify/Mirror/Rsync.pm
+SHA1 b8f51bb435cc3d93990bf246d9ca5e1fe7c08291 lib/SVN/Notify/Mirror/SSH.pm
+SHA1 3f8f2dc4cf669731d8e3404fbba8e15df53733f9 t/001_basic.t
+SHA1 b2fde1f104eac9f9a19a58cc4b762f47c0b1f4db t/002_config.t.PL
+SHA1 7f294986e4b1419e44501bfdf2c4ed9a3c314bf2 t/003_sshtest.t.PL
+SHA1 98b289bbab302e2b2a7795a93156ce3a45fea389 t/004_rsynctest.t.PL
+SHA1 9417ac53a16259e5cc589300f2c206cd07fe39d4 t/coretests.pm
+SHA1 af719d83aa699b230d2f1853f2b4e4e94644ad3e t/test-repos.dump
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.2 (GNU/Linux)
+
+iD8DBQFFYluQimg5mLGPahYRAjjkAKCK69qWxYW8lN6D2gwmgxUXAztHPQCcCJ/q
+OkgI7KKZbIB5/JIjfzL/+qM=
+=QTrY
+-----END PGP SIGNATURE-----

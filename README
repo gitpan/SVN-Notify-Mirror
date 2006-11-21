@@ -7,17 +7,13 @@ DESCRIPTION
     made to the repository. This directory can either be on the same box as
     the repository itself, or it can be remote.
 
+    NEW in version 0.03403
+        - more attempts to find external binaries during testing
+	- skip instead of bailing out (try to prevent needless failures)
+
     NEW in version 0.03402
 	- correct test failures due to lack of svnadmin executable in path
 	- bail out if svnnotify is not found either
-
-    NEW in version 0.033 is:
-	- API change in SVN::Notify 0.62
-	- Requires SVN::Notify::Config >= 0.7 (same reason)
-
-    NEW in version 0.032 is:
-        - bugfix so tests operate correctly with older Subversion clients
-	- don't hardcode path to svn executable
 
     NOTE: Please use SVN::Notify::Mirror::SSH directly for all new
     installs.  The compatibility feature to pass through ssh-* options
