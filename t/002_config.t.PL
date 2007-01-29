@@ -23,6 +23,7 @@ if ( $mb->feature('ssh_support') and $mb->notes('sshtests') ) {
 '/project1/trunk':
   handler: Mirror::SSH
   to: "$PWD/t/wc-trunk/"
+  minimal: 1
   ssh-host: localhost
 '/project1/tags':
   handler: Mirror::SSH
@@ -35,6 +36,7 @@ else {
     print {$FILE} <<"EOF";
 '/project1/trunk':
   handler: Mirror
+  minimal: 1
   to: "$PWD/t/wc-trunk/"
 '/project1/tags':
   handler: Mirror

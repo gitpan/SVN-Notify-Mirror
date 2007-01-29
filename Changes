@@ -1,4 +1,14 @@
-[Changes for 0.3403 - 2006-11-21]
+[Changes for 0.035 - 2007-01-29]
+
+* New option '--minimal' to update the smallest containing path at each
+  revision.  Will lead to mixed revision working copies, but is guaranteed
+  to be faster for deep trees.
+
+* All tests run once with and once without '--minimal' except for
+  config-style which has that as a default (since it is a cheap
+  operation).
+
+[Changes for 0.03403 - 2006-11-21]
 
 * Use lessons learned from testing SVN::Notify::Config about external
   binaries.  No actual code changes, just test tweaks.

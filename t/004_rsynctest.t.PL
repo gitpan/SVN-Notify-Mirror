@@ -3,20 +3,27 @@ my $filename = shift;
 
 my $mb = Module::Build->current();
 
-my $testscript = <<"EOF";
+if ( $mb->feature('rsync_support') and $mb->notes('rsynctests') ) {
+    my $ssh = '';
+    if ( $mb->feature('ssh_support') and $mb->notes('sshtests') ) {
+	$ssh = "'rsync-ssh' => 1";
+    }
+    open my $FILE, '>', $filename;
+    print {$FILE} <<"EOF";
+require SVN::Notify;
+use Test::More;
 require "t/coretests.pm";
 
-reset_all_tests();
-run_tests("svnnotify", 'rsync-host' => 'localhost',
+SKIP: {
+    my \$SVNNOTIFY = \$ENV{'SVNNOTIFY'} || SVN::Notify->find_exe('svnnotify');
+    skip "Cannot locate svnnotify binary!", 78
+    	unless defined(\$SVNNOTIFY);
+
+    reset_all_tests();
+    run_tests(\$SVNNOTIFY, 'rsync-host' => 'localhost', $ssh);
+    reset_all_tests();
+    run_tests("\$SVNNOTIFY --minimal", 'rsync-host' => 'localhost', $ssh);
+}
 EOF
-
-if ( $mb->feature('rsync_support') and $mb->notes('rsynctests') ) {
-    if ( $mb->feature('ssh_support') and $mb->notes('sshtests') ) {
-	$testscript .= "'rsync-ssh' => 1";
-    }
-    $testscript .= ');';
-
-    open my $FILE, '>', $filename;
-    print {$FILE} $testscript;
     close $FILE;
 }

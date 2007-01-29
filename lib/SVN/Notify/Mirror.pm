@@ -5,7 +5,7 @@ use base qw/SVN::Notify/;
 use strict;
 
 use vars qw ($VERSION);
-$VERSION = 0.03403;
+$VERSION = 0.035;
 
 __PACKAGE__->register_attributes(
     'ssh_host'     => 'ssh-host=s',
@@ -14,6 +14,7 @@ __PACKAGE__->register_attributes(
     'ssh_identity' => 'ssh-identity:s',
     'svn_binary'   => 'svn-binary:s',
     'tag_regex'    => 'tag-regex:s',
+    'minimal'      => 'minimal',
 );
 
 sub prepare {
@@ -66,17 +67,39 @@ sub execute {
 	push @args, $tag;
     }
 
-    print $self->_cd_run(
-	$to,
-	$self->svn_binary,
-	$command,
-	@args,
+    if ( $self->minimal ) {
+	# perform minimal update only
+	my @paths;
+	my $prefix = $self->{'handle_path'}; # simple case
+	unless ( $prefix ) {
+	    # hard case
+	    $DB::single = 1;
+	    my @message = $self->_cd_run($to, $self->svn_binary, 'info');
+	    my $URL = (split ": ", $message[1], 2)[1];
+	    my $ROOT = (split ": ", $message[2], 2)[1];
+	    $ROOT .= '/' unless $ROOT =~ m:/$:;
+	    ($prefix = $URL) =~ s/$ROOT//;
+	}
+
+	foreach my $files ( values %{ $self->files } ) {
+	    push @paths, map { s/$prefix// && $_ } @{ $files };
+	}
+	$to .= '/'. _shortest_path(@paths);
+    }
+
+    print join("\n", 
+        $self->_cd_run(
+	    $to,
+	    $self->svn_binary,
+	    $command,
+	    @args,
+	)
     );
 }
 
 sub _cd_run {
     my ($self, $path, $binary, $command, @args) = @_;
-    my $message;
+    my @message;
     my $cmd ="$binary $command " . join(" ",@args);
 
     chdir ($path) or die "Couldn't CD to $path: $!";
@@ -84,10 +107,37 @@ sub _cd_run {
     open my $RUN, '-|', $cmd
       or die "Running [$cmd] failed with $?: $!";
     while (<$RUN>) {
-	$message .= $_;
+	chomp;
+	push @message, $_;
     }
     close $RUN;
-    return $message;
+    return (@message);
+}
+
+sub _shortest_path {
+    my @dirs = @_;
+    my @shortest;
+
+DIR: foreach my $thisdir (@dirs) {
+	my @this = split "/", $thisdir;
+	pop @this unless $thisdir =~ m:/$:;
+	unless (@shortest) {
+	    # if we don't have anything yet
+	    @shortest = @this;
+	    next DIR;
+	}
+	if ( $#shortest > $#this ) {
+	    # swap the shorter path around
+	    my @temp = @shortest;
+	    @shortest = @this;
+	    @this = @temp;
+	}
+	while ( $shortest[$#shortest] ne $this[$#shortest] ) {
+	    # keep removing the last term until we match
+	    pop @shortest;
+	}
+    }
+    return join "/", @shortest;
 }
 
 1;
@@ -107,6 +157,7 @@ Use F<svnnotify> in F<post-commit>:
    --handler Mirror --to "/path/to/www/htdocs" \
    [--svn-binary /full/path/to/svn] \
    [--tag-regex "regex"]
+   [--minimal]
 
 or better yet, use L<SVN::Notify::Config> for a more
 sophisticated setup:
@@ -117,6 +168,7 @@ sophisticated setup:
     PATH: "/usr/bin:/usr/local/bin"
   'path/in/repository':
     handler: Mirror
+    minimal: 1
     to: "/path/to/www/htdocs"
   'some/other/path/in/repository':
     handler: Mirror
@@ -140,6 +192,39 @@ Mirror>, there are different options available.  All options are
 available either as a commandline option to svnnotify or as a hash
 key in L<SVN::Notify::Config> (see their respective documentation for
 more details).
+
+=head2 Common Options
+
+In addition to all of the options available to svnnotify, there is a
+single global option that affects both L<Local Mirror> and L<Remote
+Mirror> targets:
+
+=over 4
+
+=item minimal
+
+If the C<--minimal> flag is passed on the commandline (or a hash entry
+created in a config file), then the update will occur at the shortest common
+path of all files/dirs that are changed for that revision.  For example,
+using the example config file above, the following changes occured in 
+rev 23:
+
+  Changed paths:
+    M path/in/repository/subdir/subdir2/file.1
+    A path/in/repository/subdir/file.2
+    M path/in/repository/subdir/subdir3/file.3
+
+B<and> the checked-out mirror was in C</path/to/www/htdocs>, then the
+update would be executed in the C</path/to/www/htdocs/subdir> directory.
+This is the shorted common path of the updated files.
+
+NOTE: when using the SVN::Notify::Config mode, the matching path (in the
+above example C<path/in/repository>) is stripped off of the shortest
+common path prior to appending that to the destination path (the C<to:> 
+key).  It is assumed that a matching key is the "root" of the working 
+copy.
+
+=back
 
 =head2 Working Copy on Mirror
 

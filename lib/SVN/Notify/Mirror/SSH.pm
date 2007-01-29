@@ -25,7 +25,7 @@ sub _cd_run {
     	defined $self->{'ssh_user'} 
     	? $self->{'ssh_user'}.'@'.$host
 	: $host;
-    my $return;
+    my @message;
 
     unshift @args, $binary, $command;
     $path =~ s/'/'"'"'/g; # quote single quotes
@@ -42,12 +42,13 @@ sub _cd_run {
     sshopen2($user, *READER, *WRITER, $cmd) || die "ssh: $!";
 
     while (<READER>) {
-	$return .= $_;
+	chomp;
+	push @message, $_;
     }
 
     close(READER);
     close(WRITER);
-    return $return;
+    return (@message);
 }
 
 1;

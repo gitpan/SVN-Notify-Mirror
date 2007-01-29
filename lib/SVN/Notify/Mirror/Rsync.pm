@@ -23,7 +23,7 @@ __PACKAGE__->register_attributes(
 
 sub _cd_run {
      my ($self, $path, $binary, $command, @args) = @_;
-     my $message = $self->SUPER::_cd_run($path, $binary, $command, @args);
+     my @message = $self->SUPER::_cd_run($path, $binary, $command, @args);
      eval "use File::Rsync";
      die "Failed to load File::Rsync: $@" if $@;
 
@@ -75,9 +75,9 @@ sub _cd_run {
 	    src => $path."/", 
 	    dest => "$host:$dest", 
 	})
-         or $message .= "rsync failed:\n" . join("\n",$rsync->err);
+         or push @message, "rsync failed:\n" . join("\n",$rsync->err);
 
-     return $message;
+     return (@message);
 }
 
 1;
