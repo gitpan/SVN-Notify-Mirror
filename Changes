@@ -1,3 +1,7 @@
+[Changes for 0.03601 - 2007-03-02]
+
+* Quick release to fix brokeness in --tag-regex handling.
+
 [Changes for 0.036 - 2007-03-02]
 
 * Handle multiple targets (i.e. To) which to_regex_map and S::N::Config

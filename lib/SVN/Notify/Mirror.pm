@@ -5,7 +5,7 @@ use base qw/SVN::Notify/;
 use strict;
 
 use vars qw ($VERSION);
-$VERSION = 0.036;
+$VERSION = 0.03601;
 
 __PACKAGE__->register_attributes(
     'ssh_host'     => 'ssh-host=s',
@@ -47,17 +47,19 @@ sub execute {
 
 	# deal with the possible switch case
 	if ( defined $self->tag_regex ) {
+	    $DB::single = 1;
 	    $command = 'switch';
 	    my $regex = $self->tag_regex;
 	    my ($tag) = grep /$regex/, @{$self->{'files'}->{'A'}};
 	    $tag =~ s/^.+\/tags\/(.+)/$1/;
 	    return unless $tag;
-	    my $return = $self->_cd_run(
+	    my @message = $self->_cd_run(
 		$to,
 		$self->svn_binary,
 		'info',
 	    );
-	    if ( $return =~ m/^URL: (.+\/tags\/).+$/m ) {
+	    my $URL = (split ": ", $message[1], 2)[1];
+	    if ( $URL =~ m/^(.+\/tags\/).+$/m ) {
 		my $url = $1;
 		$tag = $url.$tag;
 	    }

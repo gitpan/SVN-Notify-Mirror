@@ -34,7 +34,7 @@ sub _cd_run {
 	if ( $self->{'ssh_tunnel'} =~ m/\d+:.+:\d+/ ) { 
 	    # user-supplied configuration 
 	    push @Net::SSH::ssh_options,
-		'-R'.$self->{'ssh_tunnel'};
+		'-R'.$self->{'ssh_tunnel'}, '-q';
 	}
 	else {
 	    # default svnserve configuration
