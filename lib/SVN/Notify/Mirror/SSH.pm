@@ -31,8 +31,16 @@ sub _cd_run {
     $path =~ s/'/'"'"'/g; # quote single quotes
     my $cmd  = "cd '$path' && " . join(" ",@args); # wrap path in single quotes
     if ( defined $self->{'ssh_tunnel'} ) {
-	push @Net::SSH::ssh_options, 
+	if ( $self->{'ssh_tunnel'} =~ m/\d+:.+:\d+/ ) { 
+	    # user-supplied configuration 
+	    push @Net::SSH::ssh_options,
+		'-R'.$self->{'ssh_tunnel'};
+	}
+	else {
+	    # default svnserve configuration
+	    push @Net::SSH::ssh_options, 
 		"-R3690:".$self->{'ssh_tunnel'}.":3690";
+	}
     }
     if ( defined $self->{'ssh_identity'} ) {
 	push @Net::SSH::ssh_options,
@@ -165,23 +173,34 @@ to provide temporary access to the repository.  This works even
 if repository is located internally, and the remote server is 
 located outside of a firewall or on a DMZ.
 
-The value passed as the ssh-tunnel should be the IP address to
-which the local repository service is bound (whether that is
-Apache or svnserve).  This will tunnel port 3690 from the 
-repository box to localhost:3690 on the remote box.  This must
-also be the way that the original working copy was checked out.
+The value passed for ssh-tunnel should be the IP address to which the
+local repository service is bound (when using svnserve).  This will
+tunnel port 3690 from the repository box to localhost:3690 on the
+remote box.  This must also be the way that the original working copy
+was checked out (see below).
+
+To tunnel some other port, for example when using Apache/mod_dav,
+ssh-tunnel should be the entire mapping expression, as described in the
+OpenSSH documentation under the C<-R> option (remote port forwarding).  
+For most sites, passing C<8080:10.0.0.2:80> will work (which will tunnel
+port 80 from the repository to port 8080 on the remote client).  If you are
+using SSL with Apache, you can use e.g. C<80443:10.0.0.2:443>.
 
 For example, see L<Remote Mirror Pre-requisites> and after step #6,
-perform the following additional steps:
+perform the following additional steps (when using svnserve):
 
   # su - localuser
   $ ssh -i .ssh/id_rsa remote_user@remote_host -R3690:10.0.0.2:3690
   $ cd /path/to/mirror/working/copy
   $ svn co svn://127.0.0.1/repos/path/to/files .
 
-where 10.0.0.2 is the IP address hosting the repository service.  
-Replace C<svn://> with C<http://> if you are running Apache 
-instead of svnserve.
+where 10.0.0.2 is the IP address hosting the repository service.  For the
+same configuration when using Apache/mod_dav, do this instead:
+
+  # su - localuser
+  $ ssh -i .ssh/id_rsa remote_user@remote_host -R8080:10.0.0.2:80
+  $ cd /path/to/mirror/working/copy
+  $ svn co http://127.0.0.1:8080/repos/path/to/files .
 
 =head2 Remote Mirror Pre-requisites
 

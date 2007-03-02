@@ -5,7 +5,7 @@ use base qw/SVN::Notify/;
 use strict;
 
 use vars qw ($VERSION);
-$VERSION = 0.035;
+$VERSION = 0.036;
 
 __PACKAGE__->register_attributes(
     'ssh_host'     => 'ssh-host=s',
@@ -28,73 +28,71 @@ sub execute {
     return unless defined $self->to;
     $self->svn_binary( $ENV{SVN} || SVN::Notify->find_exe('svn') )
     	unless $self->svn_binary;
-    my $to = $self->to;
-    if ( ref($to) eq 'ARRAY' ) {
-	$to = $to->[0]; # we can't use SVN::Notify 2.61+ interface yet
-    }
 
-    my $command = 'update';
-    my @args = (
-	-r => $self->revision,
-    );  	
+    foreach my $to ( $self->to ) {
+	my $command = 'update';
+	my @args = (
+	    -r => $self->revision,
+	);  	
 
-    # need to swap function calls for backwards compatibility for now
-    if ( defined $self->ssh_host 
-    	 and not $self->isa('SVN::Notify::Mirror::SSH') )
-    {	
-	no warnings 'redefine';
-	warn "Deprecated - please use SVN::Notify::Mirror::SSH directly";
-	require SVN::Notify::Mirror::SSH;
-	*_cd_run = \&SVN::Notify::Mirror::SSH::_cd_run;
-    }
+	# need to swap function calls for backwards compatibility for now
+	if ( defined $self->ssh_host 
+	     and not $self->isa('SVN::Notify::Mirror::SSH') )
+	{	
+	    no warnings 'redefine';
+	    warn "Deprecated - please use SVN::Notify::Mirror::SSH directly";
+	    require SVN::Notify::Mirror::SSH;
+	    *_cd_run = \&SVN::Notify::Mirror::SSH::_cd_run;
+	}
 
-    # deal with the possible switch case
-    if ( defined $self->tag_regex ) {
-	$command = 'switch';
-	my $regex = $self->tag_regex;
-	my ($tag) = grep /$regex/, @{$self->{'files'}->{'A'}};
-	$tag =~ s/^.+\/tags\/(.+)/$1/;
-	return unless $tag;
-	my $return = $self->_cd_run(
-	    $to,
-	    $self->svn_binary,
-	    'info',
+	# deal with the possible switch case
+	if ( defined $self->tag_regex ) {
+	    $command = 'switch';
+	    my $regex = $self->tag_regex;
+	    my ($tag) = grep /$regex/, @{$self->{'files'}->{'A'}};
+	    $tag =~ s/^.+\/tags\/(.+)/$1/;
+	    return unless $tag;
+	    my $return = $self->_cd_run(
+		$to,
+		$self->svn_binary,
+		'info',
+	    );
+	    if ( $return =~ m/^URL: (.+\/tags\/).+$/m ) {
+		my $url = $1;
+		$tag = $url.$tag;
+	    }
+	    push @args, $tag;
+	}
+
+	if ( $self->minimal ) {
+	    # perform minimal update only
+	    my @paths;
+	    my $prefix = $self->{'handle_path'}; # simple case
+	    unless ( $prefix ) {
+		# hard case
+		$DB::single = 1;
+		my @message = $self->_cd_run($to, $self->svn_binary, 'info');
+		my $URL = (split ": ", $message[1], 2)[1];
+		my $ROOT = (split ": ", $message[2], 2)[1];
+		$ROOT .= '/' unless $ROOT =~ m:/$:;
+		($prefix = $URL) =~ s/$ROOT//;
+	    }
+
+	    foreach my $files ( values %{ $self->files } ) {
+		push @paths, map { s/$prefix// && $_ } @{ $files };
+	    }
+	    $to .= '/'. _shortest_path(@paths);
+	}
+
+	print join("\n", 
+	    $self->_cd_run(
+		$to,
+		$self->svn_binary,
+		$command,
+		@args,
+	    )
 	);
-	if ( $return =~ m/^URL: (.+\/tags\/).+$/m ) {
-	    my $url = $1;
-	    $tag = $url.$tag;
-	}
-	push @args, $tag;
     }
-
-    if ( $self->minimal ) {
-	# perform minimal update only
-	my @paths;
-	my $prefix = $self->{'handle_path'}; # simple case
-	unless ( $prefix ) {
-	    # hard case
-	    $DB::single = 1;
-	    my @message = $self->_cd_run($to, $self->svn_binary, 'info');
-	    my $URL = (split ": ", $message[1], 2)[1];
-	    my $ROOT = (split ": ", $message[2], 2)[1];
-	    $ROOT .= '/' unless $ROOT =~ m:/$:;
-	    ($prefix = $URL) =~ s/$ROOT//;
-	}
-
-	foreach my $files ( values %{ $self->files } ) {
-	    push @paths, map { s/$prefix// && $_ } @{ $files };
-	}
-	$to .= '/'. _shortest_path(@paths);
-    }
-
-    print join("\n", 
-        $self->_cd_run(
-	    $to,
-	    $self->svn_binary,
-	    $command,
-	    @args,
-	)
-    );
 }
 
 sub _cd_run {

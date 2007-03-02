@@ -1,3 +1,10 @@
+[Changes for 0.036 - 2007-03-02]
+
+* Handle multiple targets (i.e. To) which to_regex_map and S::N::Config
+  can produce.
+
+* Improve and document tunneling of http[s]:// paths.
+
 [Changes for 0.035 - 2007-01-29]
 
 * New option '--minimal' to update the smallest containing path at each
