@@ -5,7 +5,7 @@ use base qw/SVN::Notify/;
 use strict;
 
 use vars qw ($VERSION);
-$VERSION = 0.03601;
+$VERSION = 0.03602;
 
 __PACKAGE__->register_attributes(
     'ssh_host'     => 'ssh-host=s',
@@ -120,7 +120,7 @@ sub _shortest_path {
 
 DIR: foreach my $thisdir (@dirs) {
 	my @this = split "/", $thisdir;
-	pop @this unless $thisdir =~ m:/$:;
+	pop @this; # either remove the filename or the last directory entry
 	unless (@shortest) {
 	    # if we don't have anything yet
 	    @shortest = @this;
