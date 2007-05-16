@@ -5,7 +5,7 @@ use base qw/SVN::Notify/;
 use strict;
 
 use vars qw ($VERSION);
-$VERSION = 0.03602;
+$VERSION = 0.03603;
 
 __PACKAGE__->register_attributes(
     'ssh_host'     => 'ssh-host=s',
@@ -373,6 +373,8 @@ install in order to see the tests).
 John Peacock <jpeacock@cpan.org>
 
 =head1 COPYRIGHT
+
+Copyright 2005-2007 John Peacock
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

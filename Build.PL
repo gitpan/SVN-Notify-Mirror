@@ -54,7 +54,17 @@ if ( $mb->feature('ssh_support') ) {
 }
 
 if ( $mb->feature('rsync_support') ) {
-    $mb->notes( rsynctests => 1 );
+    $mb->notes( rsynctests => 1 ) if
+    	$mb->y_n(
+    "Do you want to run the rsync tests?\n".
+    "(see the README for details)",'N');
+    	
+    if ( $mb->notes('sshtests') && $mb->notes('rsynctests') ) {
+	$mb->notes( rsyncsshtests => 1 ) if
+	    $mb->y_n(
+	"Do you want to run the rsync tests via SSH?\n".
+	"(see the README for details)",'N');
+    }
 }
 
 $mb->create_build_script;

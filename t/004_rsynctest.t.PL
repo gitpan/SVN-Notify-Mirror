@@ -5,7 +5,7 @@ my $mb = Module::Build->current();
 
 if ( $mb->feature('rsync_support') and $mb->notes('rsynctests') ) {
     my $ssh = '';
-    if ( $mb->feature('ssh_support') and $mb->notes('sshtests') ) {
+    if ( $mb->feature('rsyncsshtests') ) {
 	$ssh = "'rsync-ssh' => 1";
     }
     open my $FILE, '>', $filename;

@@ -6,7 +6,7 @@ use strict;
 BEGIN {
     use vars qw ($VERSION);
     use base qw(SVN::Notify::Mirror);
-    $VERSION     = $SVN::Notify::Mirror::VERSION;
+    $VERSION = 0.03603;
 }
 
 __PACKAGE__->register_attributes(
@@ -264,6 +264,8 @@ your options.
 John Peacock <jpeacock@cpan.org>
 
 =head1 COPYRIGHT
+
+Copyright 2005-2007 John Peacock
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

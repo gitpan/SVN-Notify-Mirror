@@ -7,11 +7,9 @@ DESCRIPTION
     made to the repository. This directory can either be on the same box as
     the repository itself, or it can be remote.
 
-    NEW in version 0.03602
-    - Fix --minimal (didn't create new directories)
-
-    NEW in version 0.03601
-    - Fix brokeness in --tag-regex handling (never ignore weird errors)
+    NEW in version 0.03603
+    - Fix make rsync tests optional
+    - Copyright statement was missing in all modules
 
     NEW in version 0.036
     - Handles multiple destinations/paths seamlessly.

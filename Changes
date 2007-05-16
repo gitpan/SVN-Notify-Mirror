@@ -1,3 +1,9 @@
+[Changes for 0.03603 - 2007-05-16]
+
+Enabled rsync test to be optional (like ssh tests).
+Added Copyright text.
+Added explicit $VERSION to implementation classes (to match main $VERSION).
+
 [Changes for 0.03602 - 2007-03-14]
 
 * --minimal would fail to create new directory if there wasn't also a
