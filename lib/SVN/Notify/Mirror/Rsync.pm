@@ -7,7 +7,7 @@ use strict;
 BEGIN {
     use vars qw ($VERSION);
     use base qw(SVN::Notify::Mirror);
-    $VERSION = 0.03603;
+    $VERSION = 0.037;
 }
 
 __PACKAGE__->register_attributes(
@@ -19,6 +19,7 @@ __PACKAGE__->register_attributes(
      'ssh_user'     => 'ssh-user:s',
      'ssh_binary'   => 'ssh-binary:s',
      'ssh_identity' => 'ssh-identity:s',
+     'ssh_options'  => 'ssh-options:s',
 );
 
 sub _cd_run {
@@ -62,11 +63,15 @@ sub _cd_run {
 	 my $ssh_identity = (defined $self->{'ssh_identity'} 
 	 			? $self->{'ssh_identity'}
 				: "");
+	 my $ssh_options  = (defined $self->{'ssh_options'}
+	 			? $self->{'ssh_options'}
+				: "");
 
 	 $args->{'rsh'} = 
 	 	   $ssh_binary
 	 	. ($ssh_user     ? " -l $ssh_user"     : "")
-		. ($ssh_identity ? " -i $ssh_identity" : "");
+		. ($ssh_identity ? " -i $ssh_identity" : "")
+		. ($ssh_options  ? " $ssh_options"     : "");
      }
 
      my $rsync = File::Rsync->new($args);
@@ -217,7 +222,7 @@ John Peacock <jpeacock@cpan.org>
 
 =head1 COPYRIGHT
 
-Copyright 2005-2007 John Peacock
+Copyright (c) 2005-2008 John Peacock
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

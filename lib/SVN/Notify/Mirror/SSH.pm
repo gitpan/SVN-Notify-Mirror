@@ -6,7 +6,7 @@ use strict;
 BEGIN {
     use vars qw ($VERSION);
     use base qw(SVN::Notify::Mirror);
-    $VERSION = 0.03603;
+    $VERSION = 0.037;
 }
 
 __PACKAGE__->register_attributes(
@@ -14,6 +14,7 @@ __PACKAGE__->register_attributes(
     'ssh_user'     => 'ssh-user:s',
     'ssh_tunnel'   => 'ssh-tunnel:s',
     'ssh_identity' => 'ssh-identity:s',
+    'ssh_options'  => 'ssh-options:s',
 );
 
 sub _cd_run {
@@ -45,6 +46,10 @@ sub _cd_run {
     if ( defined $self->{'ssh_identity'} ) {
 	push @Net::SSH::ssh_options,
 		"-i".$self->{'ssh_identity'};
+    }
+    if ( defined $self->{'ssh_options'} ) {
+	push @Net::SSH::ssh_options,
+	    split(" ",$self->{'ssh_options'});
     }
 
     sshopen2($user, *READER, *WRITER, $cmd) || die "ssh: $!";
@@ -202,6 +207,17 @@ same configuration when using Apache/mod_dav, do this instead:
   $ cd /path/to/mirror/working/copy
   $ svn co http://127.0.0.1:8080/repos/path/to/files .
 
+=item * ssh-options
+
+If you have any other options that you would like to pass to the ssh
+client (for example to change the default SSH port), you can pass extra
+options using this parameter.  Be sure that you pass it a string that 
+has ssh long option/value pairs separated by a space, or short options
+without any space at all.  Internally, parameter is split on spaces and
+passed in the @Net::SSH::options array.
+
+=back
+
 =head2 Remote Mirror Pre-requisites
 
 Before you can configure a remote mirror, you need to produce
@@ -265,7 +281,7 @@ John Peacock <jpeacock@cpan.org>
 
 =head1 COPYRIGHT
 
-Copyright 2005-2007 John Peacock
+Copyright (c) 2005-2008 John Peacock
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

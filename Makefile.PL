@@ -1,6 +1,11 @@
 unless (eval "use Module::Build::Compat 0.02; 1" ) {
   print "This module requires Module::Build to install itself.\n";
 
+  my $isa_tty = -t STDIN && (-t STDOUT || !(-f STDOUT || -c STDOUT)) ;
+  if ($ENV{PERL_MM_USE_DEFAULT} || (!$isa_tty && eof STDIN)) {
+      exit 1;
+  }
+
   require ExtUtils::MakeMaker;
   my $yn = ExtUtils::MakeMaker::prompt
     ('  Install Module::Build from CPAN?', 'y');

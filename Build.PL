@@ -20,7 +20,8 @@ my $mb = $class->new
       sign            => 1,
       requires        => {
 	  'Module::Build' => 0.2805,
-	  'SVN::Notify'   => 2.62,
+	  'SVN::Notify'   => 2.70,
+	  'YAML'          => 0.62,
       },
       auto_features   => {
 	  ssh_support => { 

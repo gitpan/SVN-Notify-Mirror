@@ -1,3 +1,7 @@
+[Changes for 0.037 - 2008-03-02]
+
+Release to CPAN
+
 [Changes for 0.03603 - 2007-05-16]
 
 Enabled rsync test to be optional (like ssh tests).

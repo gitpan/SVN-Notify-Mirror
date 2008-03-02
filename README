@@ -7,13 +7,10 @@ DESCRIPTION
     made to the repository. This directory can either be on the same box as
     the repository itself, or it can be remote.
 
-    NEW in version 0.03603
-    - Fix make rsync tests optional
-    - Copyright statement was missing in all modules
-
-    NEW in version 0.036
-    - Handles multiple destinations/paths seamlessly.
-    - Able to tunnel http[s]:// as well as svn:// now.
+    NEW in version 0.037
+    - Support generic ssh_options parameter (for trickier settings).
+    - Require YAML explicitly
+    - Depends on latest SVN::Notify
 
     NOTE: Please use SVN::Notify::Mirror::SSH directly for all new
     installs.  The compatibility feature to pass through ssh-* options
