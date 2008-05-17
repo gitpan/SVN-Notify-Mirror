@@ -1,6 +1,6 @@
 use Module::Build;
 my $mb = Module::Build->current();
-exit(1) unless $mb->feature('config_support');
+exit(0) unless $mb->feature('config_support');
 
 use Cwd;
 my ($testconfig, $maintest, $subtest) = (shift, shift, shift);

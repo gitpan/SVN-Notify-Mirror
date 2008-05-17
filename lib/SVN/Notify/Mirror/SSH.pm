@@ -6,7 +6,7 @@ use strict;
 BEGIN {
     use vars qw ($VERSION);
     use base qw(SVN::Notify::Mirror);
-    $VERSION = 0.037;
+    $VERSION = 0.038;
 }
 
 __PACKAGE__->register_attributes(

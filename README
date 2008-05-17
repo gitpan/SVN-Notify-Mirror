@@ -7,6 +7,9 @@ DESCRIPTION
     made to the repository. This directory can either be on the same box as
     the repository itself, or it can be remote.
 
+    NEW in version 0.038
+    Bugfix for Module::Build and Perl 5.10.0
+
     NEW in version 0.037
     - Support generic ssh_options parameter (for trickier settings).
     - Require YAML explicitly
