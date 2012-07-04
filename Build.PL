@@ -7,7 +7,7 @@ my $class = Module::Build->subclass
     code => q{
 	sub ACTION_dist{
 	    my $self = shift;
-	    $self->do_system('my-changelog.pl > Changes');
+	    $self->do_system('hg log -b default --style changelog > Changes');
 	    $self->SUPER::ACTION_dist();
 	}
     }
@@ -17,11 +17,11 @@ my $mb = $class->new
     ( module_name     => 'SVN::Notify::Mirror',
       license         => 'perl',
       dist_author     => 'John Peacock <jpeacock@cpan.org>',
-      sign            => 1,
+      configure_requires => { 'Module::Build' => 0.38 },
       requires        => {
-	  'Module::Build' => 0.2805,
-	  'SVN::Notify'   => 2.70,
-	  'YAML'          => 0.62,
+	  'Module::Build' => 0.38,
+	  'SVN::Notify'   => 2.83,
+	  'YAML'          => 0.81,
       },
       auto_features   => {
 	  ssh_support => { 

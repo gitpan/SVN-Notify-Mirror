@@ -1,27 +1,31 @@
 ---
-name: SVN-Notify-Mirror
-version: 0.038
+abstract: 'Keep a mirrored working copy of a repository path'
 author:
   - 'John Peacock <jpeacock@cpan.org>'
-abstract: Keep a mirrored working copy of a repository path
+build_requires: {}
+configure_requires:
+  Module::Build: 0.38
+dynamic_config: 1
+generated_by: 'Module::Build version 0.38, CPAN::Meta::Converter version 2.112150'
 license: perl
-resources:
-  license: http://dev.perl.org/licenses/
-requires:
-  Module::Build: 0.2805
-  SVN::Notify: 2.7
-  YAML: 0.62
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: SVN-Notify-Mirror
 provides:
   SVN::Notify::Mirror:
     file: lib/SVN/Notify/Mirror.pm
-    version: 0.038
+    version: 0.040
   SVN::Notify::Mirror::Rsync:
     file: lib/SVN/Notify/Mirror/Rsync.pm
-    version: 0.038
+    version: 0.040
   SVN::Notify::Mirror::SSH:
     file: lib/SVN/Notify/Mirror/SSH.pm
-    version: 0.038
-generated_by: Module::Build version 0.2808
-meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.2.html
-  version: 1.2
+    version: 0.040
+requires:
+  Module::Build: 0.38
+  SVN::Notify: 2.83
+  YAML: 0.81
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.040

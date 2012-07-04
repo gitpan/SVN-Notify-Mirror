@@ -7,6 +7,9 @@ DESCRIPTION
     made to the repository. This directory can either be on the same box as
     the repository itself, or it can be remote.
 
+    NEW in version 0.040
+    Bugfix for Subversion 1.7.x output (test changes only)
+
     NEW in version 0.038
     Bugfix for Module::Build and Perl 5.10.0
 

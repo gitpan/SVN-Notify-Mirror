@@ -178,6 +178,7 @@ sub _test {
     open $TESTER, '-|', _build_command($command, %args);
     while (<$TESTER>) {
 	chomp;
+	next if ( /^Updating '.+':/ );
 	if ( /^At revision (\d+)\./ ) {
 	    ok ( $1 == $args{revision} , "No changes in $prefix at revision: "
 	    	. $args{revision} );

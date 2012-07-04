@@ -5,7 +5,8 @@ use base qw/SVN::Notify/;
 use strict;
 
 use vars qw ($VERSION);
-$VERSION = 0.038;
+$VERSION = '0.040';
+$VERSION = eval $VERSION;
 
 __PACKAGE__->register_attributes(
     'ssh_host'     => 'ssh-host=s',
@@ -101,6 +102,7 @@ sub _cd_run {
     my ($self, $path, $binary, $command, @args) = @_;
     my @message;
     my $cmd ="$binary $command " . join(" ",@args);
+    $self->_dbpnt("running 'cd $path; $cmd'") if $self->{verbose} > 1;
 
     chdir ($path) or die "Couldn't CD to $path: $!";
 
@@ -115,29 +117,20 @@ sub _cd_run {
 }
 
 sub _shortest_path {
-    my @dirs = @_;
-    my @shortest;
+    my @dirs = grep { /\S/ } @_;
 
-DIR: foreach my $thisdir (@dirs) {
-	my @this = split "/", $thisdir;
-	pop @this; # either remove the filename or the last directory entry
-	unless (@shortest) {
-	    # if we don't have anything yet
-	    @shortest = @this;
-	    next DIR;
-	}
-	if ( $#shortest > $#this ) {
-	    # swap the shorter path around
-	    my @temp = @shortest;
-	    @shortest = @this;
-	    @this = @temp;
-	}
-	while ( $shortest[$#shortest] ne $this[$#shortest] ) {
-	    # keep removing the last term until we match
-	    pop @shortest;
-	}
+    # Set shortest_path to first dir
+    my $shortest_path = shift(@dirs) || '';
+
+    # Find common prefix between each dir and shortest_path
+    foreach my $dir (@dirs) {
+        chop $shortest_path while (index($dir, $shortest_path) != 0);
     }
-    return join "/", @shortest;
+
+    # Remove final / and anything after
+    $shortest_path =~ s{/[^/]*?$}{};
+
+    return $shortest_path;
 }
 
 1;
